@@ -1,1 +1,7 @@
-Corregido hash SRI de Leaflet CSS. Subir solo index.html a la raiz de GitHub, reemplazar y hacer commit. No tocar otros archivos. Esperar Pages y Ctrl+F5.
+APEX SOCIAL WEB V1.6 — REPLICA FIX16
+
+Origen: APEX_SOCIAL_RC_0_19_0_IOS_COMPASS_FIX16(1).zip.
+La brujula vuelve a estar sobre el MAPA (esquina inferior izquierda), con norte fijo, sectores aceptados, direccion desde/hacia y viento consultado en el centro del mapa.
+Los marcadores muestran vela naranja y piloto. La ventana de pronostico conserva la matriz horaria y las variables existentes, sin brujula duplicada.
+Instalacion: subir index.html, app.js, styles.css a raiz de GitHub apex-social-web; confirmar commit y recargar Ctrl+F5. No tocar despegues.json ni assets.
+Nota: La web no incluye rotacion del mapa; el norte permanece arriba. Pronosticos web siguen usando Open-Meteo y no replican consenso multimodelo iOS.

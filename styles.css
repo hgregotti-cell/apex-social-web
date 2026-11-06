@@ -66,3 +66,17 @@ body:not(.map-mode) .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1
 .apex-matrix{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap}.apex-matrix th,.apex-matrix td{padding:10px 12px;border-right:1px solid #1d3957;border-bottom:1px solid #1d3957;text-align:center;min-width:103px}.apex-matrix thead th{position:sticky;top:0;background:#153455;z-index:2;color:#b4d7f4}.apex-matrix th:first-child{position:sticky;left:0;z-index:3;min-width:165px;text-align:left;background:#102b49;color:#d9eaff}.apex-matrix thead th:first-child{z-index:4}.apex-matrix td{background:#091f3b}.apex-matrix tr:nth-child(even) td{background:#0d2948}.apex-matrix .status{font-size:9px;padding:5px 7px;margin:0}
 .source-note{color:#91acc6;font-size:11px;line-height:1.5}
 @media(max-width:850px){.forecast-overview{grid-template-columns:1fr}.wind-compass{justify-content:center}.wind-compass svg{width:155px}.overview-metrics{grid-template-columns:repeat(2,1fr)}#detailDialog{padding:20px 14px}.matrix-scroll{max-height:45vh}}
+
+/* V1.6: brújula FIX16 ubicada sobre el mapa, no dentro del pronóstico */
+.map-compass{pointer-events:none;display:flex;align-items:center;gap:8px;background:#06182ff0;border:1px solid #31516c;border-radius:18px;padding:7px 10px;max-width:min(360px,75vw);box-shadow:0 8px 26px #0008}
+.map-compass svg{width:114px;height:114px;flex:none}
+.map-compass-caption{display:flex;flex-direction:column;gap:5px;max-width:200px;color:#edf7ff;font-size:11px;font-weight:700}
+.map-compass-caption strong{color:#7cb9e4;font-size:9px;letter-spacing:.4px}
+.map-compass-caption small{color:#43e68a;font-size:10px;line-height:1.4}
+.map-bottom{bottom:12px;left:12px;right:12px;align-items:flex-end}
+.apex-paraglider svg{filter:drop-shadow(0 2px 3px #0008)}
+/* El pronóstico vuelve a ser una matriz de ancho completo, como FIX16. */
+.forecast-overview{display:block}
+.forecast-intro{max-width:none}
+#detailDialog{width:min(1280px,calc(100vw - 30px))}
+@media(max-width:700px){.map-compass{padding:5px 7px;gap:5px;max-width:76vw}.map-compass svg{width:83px;height:83px}.map-compass-caption{font-size:9px}.map-compass-caption strong,.map-compass-caption small{font-size:8px}.map-legend{display:none}}
