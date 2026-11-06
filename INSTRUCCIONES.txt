@@ -1,5 +1,12 @@
-APEX SOCIAL WEB V1.3
-Subir index.html, app.js y styles.css a la raiz del repositorio apex-social-web con Add file > Upload files > Commit changes.
-No reemplazar despegues.json ni assets.
-Esperar Pages, actualizar Ctrl+F5.
-Mapa ocupa el area principal. Pronostico y Mis favoritos muestran tarjetas. Al tocar marcadores aparece el pronostico horario.
+APEX SOCIAL WEB V1.4 — MAPA Y PRONÓSTICO
+
+Subí y reemplazá en la raíz de tu repositorio GitHub estos TRES archivos:
+- index.html
+- app.js
+- styles.css
+
+No reemplaces despegues.json ni assets: se conservan los lugares y el logo.
+
+Cambios: mapa ajustado al alto visible en PC, marcadores de parapente SVG, pronóstico horizontal más ancho y compacto.
+
+Después del commit esperá la publicación de GitHub Pages y recargá con Ctrl+F5.

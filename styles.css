@@ -19,3 +19,34 @@ body:not(.map-mode) .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1
  body.map-mode .map-wrap{height:calc(100dvh - 295px);min-height:390px}
  body:not(.map-mode) .cards{grid-template-columns:1fr}
 }
+
+/* Apex Social Web 1.4: viewport-fit map and wider hourly forecast */
+@media (min-width:701px){
+ body.map-mode{overflow:hidden}
+ body.map-mode .app{height:100dvh;min-height:0}
+ body.map-mode main{height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding-top:16px;padding-bottom:12px}
+ body.map-mode header{margin-bottom:13px;flex-shrink:0}
+ body.map-mode h1{font-size:clamp(24px,2.3vw,30px);margin:3px 0 3px}
+ body.map-mode .toolbar{margin-bottom:12px;flex-shrink:0}
+ body.map-mode .content{flex:1;min-height:0}
+ body.map-mode .map-wrap{height:100%;min-height:0;max-height:none}
+ body.map-mode footer{display:none}
+}
+.marker{width:37px;height:37px;border-radius:50%;border:2px solid white;box-shadow:0 3px 12px #000a}
+.marker svg{width:31px;height:31px;display:block}
+#detailDialog{width:min(1050px,calc(100vw - 48px));max-width:1050px;padding:30px 34px;max-height:min(88dvh,850px)}
+#detailDialog h2{font-size:clamp(23px,2.4vw,32px)}
+#detailDialog .detail-meta{gap:12px}
+#detailDialog .detail-meta span{font-size:12px}
+#detailDialog .forecast-table-wrap{width:100%;overflow-x:auto}
+#detailDialog .forecast-table{width:100%;table-layout:auto;font-size:13px;margin-top:12px}
+#detailDialog .forecast-table th,#detailDialog .forecast-table td{padding:11px 12px}
+#detailDialog .forecast-table th{font-size:12px}
+#detailDialog .forecast-table td:last-child{min-width:165px}
+#detailDialog .status{white-space:nowrap}
+@media(max-width:700px){
+ body.map-mode .map-wrap{height:calc(100dvh - 285px);min-height:380px}
+ #detailDialog{width:calc(100vw - 20px);padding:23px 14px;max-height:90dvh}
+ #detailDialog .forecast-table{min-width:670px}
+ #detailDialog .forecast-table th,#detailDialog .forecast-table td{padding:9px 8px}
+}
