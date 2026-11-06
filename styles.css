@@ -50,3 +50,19 @@ body:not(.map-mode) .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1
  #detailDialog .forecast-table{min-width:670px}
  #detailDialog .forecast-table th,#detailDialog .forecast-table td{padding:9px 8px}
 }
+
+/* V1.5 — Parapente naranja y pronóstico detallado basado en FIX16 */
+.apex-paraglider{width:48px;height:56px;position:relative;filter:drop-shadow(0 3px 5px #000b)}
+.apex-paraglider svg{width:48px;height:51px;display:block}
+.flight-dot{position:absolute;bottom:0;left:19px;width:10px;height:10px;border:2px solid white;border-radius:50%;background:#a9b7c5}
+.apex-paraglider.good .flight-dot{background:#1fd39a}.apex-paraglider.warn .flight-dot{background:#ffb43a}.apex-paraglider.bad .flight-dot{background:#ff536c}
+#detailDialog{width:min(1260px,calc(100vw - 34px));max-width:1260px;max-height:94dvh;padding:24px 28px}
+#detailDialog h2{margin:6px 0 12px}.forecast-overview{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px;margin-top:12px}
+.forecast-intro{background:#071b36;border:1px solid #244465;border-radius:16px;padding:16px 20px}.forecast-intro .status{margin:0 0 4px}.forecast-intro p{margin:8px 0}
+.overview-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}.overview-metrics>div{padding:12px 9px;background:#102e50;border-radius:12px}.overview-metrics small{display:block;color:#a1b9d4;font-size:10px}.overview-metrics strong{font-size:19px}.overview-metrics strong small{display:inline;font-size:10px}
+.wind-compass{display:flex;align-items:center;gap:10px;border:1px solid #244465;border-radius:16px;background:#071b36;padding:10px}.wind-compass svg{width:190px;max-width:55%;flex-shrink:0}.compass-caption{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#abc3da}.compass-caption strong{font-size:19px;color:#fff}.compass-caption small{font-size:10px;color:#62d3a7}
+.day-selector{display:flex;gap:8px;margin:16px 0 12px;overflow-x:auto}.day-button{padding:10px 18px;background:#102b4c;border:1px solid #325274;color:#a8c7e2;border-radius:11px;font-weight:800;cursor:pointer;white-space:nowrap}.day-button.selected{border-color:#ff7427;color:#ff9b54;background:#422b20}
+.matrix-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:9px 0;color:#eaf3ff;font-size:12px}.matrix-header span{color:#94afc9;font-size:11px}.matrix-scroll{max-width:100%;overflow:auto;border:1px solid #284766;border-radius:13px;max-height:42vh}
+.apex-matrix{border-collapse:separate;border-spacing:0;font-size:11px;white-space:nowrap}.apex-matrix th,.apex-matrix td{padding:10px 12px;border-right:1px solid #1d3957;border-bottom:1px solid #1d3957;text-align:center;min-width:103px}.apex-matrix thead th{position:sticky;top:0;background:#153455;z-index:2;color:#b4d7f4}.apex-matrix th:first-child{position:sticky;left:0;z-index:3;min-width:165px;text-align:left;background:#102b49;color:#d9eaff}.apex-matrix thead th:first-child{z-index:4}.apex-matrix td{background:#091f3b}.apex-matrix tr:nth-child(even) td{background:#0d2948}.apex-matrix .status{font-size:9px;padding:5px 7px;margin:0}
+.source-note{color:#91acc6;font-size:11px;line-height:1.5}
+@media(max-width:850px){.forecast-overview{grid-template-columns:1fr}.wind-compass{justify-content:center}.wind-compass svg{width:155px}.overview-metrics{grid-template-columns:repeat(2,1fr)}#detailDialog{padding:20px 14px}.matrix-scroll{max-height:45vh}}
