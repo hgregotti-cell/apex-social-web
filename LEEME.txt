@@ -1,1 +1,6 @@
-Apex Social Web V1.8. Subir index.html, app.js y styles.css a la raiz del repositorio. No reemplazar despegues.json ni assets. El parapente original queda en un circulo de color segun el semaforo, sin punto inferior. El pronostico mantiene las filas visibles y permite recorrer las 24 horas horizontalmente con la primera columna fija.
+APEX SOCIAL WEB V1.10 — MAPA CALLES AL INICIAR
+
+Subí index.html y app.js al repositorio GitHub, reemplazando los anteriores.
+La página arranca siempre en Calles incluso tras actualizar/restaurar pestaña.
+El botón indica la vista actual: Vista: Calles o Vista: Satélite.
+Los demás archivos de la versión anterior se conservan.
