@@ -27,7 +27,44 @@ function card(site){const h=hourFor(site),a=assess(site,h),fav=state.favorites.h
 function renderCards(){const sites=visibleSites();$('count').textContent=sites.length;$('cards').innerHTML=sites.length?sites.map(card).join(''):'<div class="empty">No hay despegues para mostrar.</div>'}
 function renderMarkers(){if(!state.map)return;state.markers.forEach(m=>state.map.removeLayer(m));state.markers=[];visibleSites().forEach(s=>{const a=assess(s,hourFor(s));const icon=L.divIcon({className:'',html:`<div class="marker ${a.kind}">⌃</div>`,iconSize:[30,30],iconAnchor:[15,15]});const marker=L.marker([s.lat,s.lon],{icon}).addTo(state.map);marker.bindTooltip(s.name,{direction:'top'});marker.on('click',()=>showDetail(s.id));state.markers.push(marker)})}
 function render(){renderCards();renderMarkers();$('addBtn').hidden=!state.token;}
-function initMap(){state.map=L.map('map',{zoomControl:false}).setView([-42.89,-71.32],10);L.control.zoom({position:'bottomright'}).addTo(state.map);state.osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});state.sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Tiles © Esri, Maxar, Earthstar Geographics'});state.osm.addTo(state.map)}
+// FIX WEB MAP 1.1: cada mosaico puede recuperarse con un proveedor alternativo.
+// Evita los huecos de 256px cuando una solicitud de imágenes falla.
+const ResilientTiles=L.TileLayer.extend({
+  createTile(coords,done){
+    const img=document.createElement('img');
+    img.alt='';img.setAttribute('role','presentation');
+    const z=coords.z,x=coords.x,y=coords.y;
+    const sources=this.options.satellite?[
+      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}?retry=1`
+    ]:[
+      `https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
+      `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+      `https://a.tile.openstreetmap.fr/hot/${z}/${x}/${y}.png`
+    ];
+    let n=0,completed=false;
+    const finish=(err)=>{if(!completed){completed=true;done(err,img)}};
+    img.onload=()=>finish(null);
+    img.onerror=()=>{n++;if(n<sources.length){img.src=sources[n]}else{img.style.background='#173b47';finish(new Error('Mosaico no disponible'))}};
+    img.referrerPolicy='strict-origin-when-cross-origin';
+    img.src=sources[0];return img;
+  }
+});
+function initMap(){
+  state.map=L.map('map',{zoomControl:false,preferCanvas:true,zoomSnap:1}).setView([-42.89,-71.32],10);
+  L.control.zoom({position:'bottomright'}).addTo(state.map);
+  state.osm=new ResilientTiles('',{maxZoom:19,attribution:'© CARTO · © OpenStreetMap contributors'});
+  state.sat=new ResilientTiles('',{satellite:true,maxZoom:18,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'});
+  state.osm.addTo(state.map);
+  // Recalcular el tamaño tras el primer render, cambios de viewport y vuelta a la pestaña.
+  const resize=()=>state.map&&state.map.invalidateSize({pan:false,animate:false});
+  requestAnimationFrame(()=>requestAnimationFrame(resize));
+  window.addEventListener('load',resize);
+  window.addEventListener('resize',resize,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)resize()});
+  if(window.ResizeObserver){const observer=new ResizeObserver(resize);observer.observe($('map'));state.mapResizeObserver=observer;}
+}
+
 function showDetail(id){const s=state.sites.find(x=>x.id===id);if(!s)return;const hours=state.weather.get(id)||[],h=hourFor(s),a=assess(s,h);const next=hours.filter(x=>x.ts>=Date.now()-3600000).slice(0,24);$('detailContent').innerHTML=`<div class="eyebrow">PRONÓSTICO POR HORAS</div><h2>${safe(s.name)}</h2><div class="detail-meta"><span>⌖ ${fmt(s.lat,5)}, ${fmt(s.lon,5)}</span><span>Orientaciones: ${s.windFromDirections.map(windLabel).join(' · ')||'Sin configurar'}</span></div><div class="status ${a.kind}">${safe(a.label)}</div><p>${safe(a.reason)}</p><div style="overflow:auto"><table class="forecast-table"><thead><tr><th>Hora</th><th>Viento</th><th>Ráfaga</th><th>Desde</th><th>Lluvia</th><th>Evaluación</th></tr></thead><tbody>${next.map(x=>{const z=assess(s,x);return `<tr><td>${safe(x.local.slice(5,16).replace('T',' · '))}</td><td>${fmt(x.wind)} km/h</td><td>${fmt(x.gust)} km/h</td><td>${windLabel(x.dir)}</td><td>${fmt(x.rain,1)} mm</td><td><span class="status ${z.kind}" style="margin:0">${safe(z.label)}</span></td></tr>`}).join('')}</tbody></table></div><p style="font-size:11px">Modelo Open-Meteo. Predicción aproximada, no medición en el despegue. El terreno puede producir turbulencia y viento local no reflejados.</p>`;$('detailDialog').showModal();state.map?.panTo([s.lat,s.lon])}
 function openAdmin(){$('repoOwner').value=state.owner;$('repoName').value=state.repo;$('repoToken').value='';$('adminMessage').textContent='';$('adminDialog').showModal()}
 async function githubRequest(path,options={}){const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(state.owner)}/${encodeURIComponent(state.repo)}/${path}`,{...options,headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${state.token}`,'X-GitHub-Api-Version':'2022-11-28',...options.headers}});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.message||`GitHub HTTP ${r.status}`);return data}
