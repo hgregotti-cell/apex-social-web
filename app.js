@@ -31,7 +31,7 @@ function render(){renderCards();renderMarkers();$('addBtn').hidden=!state.token;
 // Evita los huecos de 256px cuando una solicitud de imágenes falla.
 const ResilientTiles=L.TileLayer.extend({
   createTile(coords,done){
-    const img=document.createElement('img');
+    const img=L.DomUtil.create('img','leaflet-tile');
     img.alt='';img.setAttribute('role','presentation');
     const z=coords.z,x=coords.x,y=coords.y;
     const sources=this.options.satellite?[
@@ -47,6 +47,7 @@ const ResilientTiles=L.TileLayer.extend({
     img.onload=()=>finish(null);
     img.onerror=()=>{n++;if(n<sources.length){img.src=sources[n]}else{img.style.background='#173b47';finish(new Error('Mosaico no disponible'))}};
     img.referrerPolicy='strict-origin-when-cross-origin';
+    img.decoding='async';
     img.src=sources[0];return img;
   }
 });

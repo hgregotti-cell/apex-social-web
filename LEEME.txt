@@ -1,0 +1,2 @@
+Apex Social Web V1.2 - correccion de posicionamiento de mosaicos Leaflet.
+Subir app.js y styles.css a la raiz del repositorio apex-social-web y confirmar cambios.
