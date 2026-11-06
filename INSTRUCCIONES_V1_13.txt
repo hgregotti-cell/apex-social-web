@@ -1,0 +1,33 @@
+APEX SOCIAL WEB V1.13 — CLOUDFlARE D1
+
+IMPORTANTE: Este ZIP es una ACTUALIZACION, no un sitio web completo.
+El ZIP V1.12 recibido no contiene despegues.json, carpeta assets ni manifest.webmanifest.
+NO BORRAR esos archivos existentes de GitHub. NO subir el ZIP como archivo único.
+
+1) CLOUDFLARE WORKER
+- Cloudflare > Workers & Pages > apex-social-api > Edit code.
+- Reemplazar TODO el código con cloudflare-worker.js de este ZIP.
+- Deploy. Mantener el binding D1 DB -> apex-social-db y el secret ADMIN_PASSWORD ya configurados.
+- No hace falta GITHUB_TOKEN ni permisos de escritura en GitHub.
+- Abrir https://apex-social-api.hgregotti.workers.dev/ y comprobar ok:true.
+- Abrir https://apex-social-api.hgregotti.workers.dev/despegues y comprobar despegues:[], initialized:false (antes de la primera edición).
+
+2) GITHUB PAGES
+- Repo hgregotti-cell/apex-social-web > Add file > Upload files.
+- Subir SOLO index.html, app.js, styles.css y config.js de este ZIP.
+- Confirmar reemplazo de archivos existentes y Commit changes.
+- NO borrar ni reemplazar despegues.json ni assets. Esperar despliegue de Pages.
+
+3) PRUEBA
+- Abrir la web con actualización forzada (Ctrl+F5 o cerrar pestaña del móvil).
+- Comprobar que se ven los despegues existentes y el mapa satelital.
+- Administrar lugares > introducir contraseña > editar un despegue > guardar.
+- La primera escritura importará todos los despegues visibles de despegues.json a D1.
+- Volver a cargar y verificar el cambio desde PC y móvil.
+- Después de la primera escritura, D1 será la fuente de datos; incluso una lista vacía se considera válida.
+
+NOTAS
+- El frontend solo permite escribir después de validar la contraseña en Worker.
+- Una contraseña de 5 letras es débil para un sitio público: usar Cloudflare WAF/rate limiting o una clave larga antes de ampliar difusión.
+- El endpoint GET /despegues es público, los endpoints de escritura requieren ADMIN_PASSWORD.
+- Este ZIP no incluye los archivos ausentes del original. No se pudo hacer prueba real en Cloudflare desde aquí.
