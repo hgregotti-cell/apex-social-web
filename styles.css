@@ -129,3 +129,54 @@ body:not(.map-mode) .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1
 #detailContent .apex-matrix .status{font-size:9px!important;line-height:1.2!important;padding:5px 4px!important;overflow-wrap:anywhere!important}
 #detailContent .matrix-header span{font-size:11px}
 @media(max-width:700px){#detailContent .apex-matrix th,#detailContent .apex-matrix td{width:105px!important;min-width:105px!important;max-width:105px!important}#detailContent .apex-matrix th:first-child{width:120px!important;min-width:120px!important;max-width:120px!important}}
+
+/* V1.9 — Marcadores azul Apex: el semáforo colorea SOLO el parapente */
+.apex-paraglider,.apex-paraglider.good,.apex-paraglider.warn,.apex-paraglider.bad,.apex-paraglider.unknown{
+ background:#103a70!important;border:2px solid #5aa9f3!important;
+ box-shadow:0 3px 13px #000a,inset 0 0 0 2px #0b2448!important;
+}
+.apex-paraglider.good .apex-original-paraglider{color:#24e58a!important}
+.apex-paraglider.warn .apex-original-paraglider{color:#ff902d!important}
+.apex-paraglider.bad .apex-original-paraglider{color:#ff4059!important}
+.apex-paraglider.unknown .apex-original-paraglider{color:#a3b7cc!important}
+
+/* V1.9 — 16 variables completas, sin scroll vertical; SOLO horas desplazables */
+#detailContent .matrix-scroll{
+ overflow-x:auto!important;overflow-y:hidden!important;
+ flex:1 1 0!important;min-height:0!important;max-height:none!important;
+ scrollbar-width:thin;scrollbar-color:#5e94c1 #0b2341;
+}
+#detailContent .apex-matrix{
+ height:100%!important;min-height:100%!important;
+ width:max-content!important;min-width:100%!important;
+ table-layout:fixed!important;border-collapse:separate!important;border-spacing:0!important;
+ font-size:10px!important;line-height:1.1!important;
+}
+#detailContent .apex-matrix thead tr{height:5%!important}
+#detailContent .apex-matrix tbody tr{height:5.9375%!important}
+#detailContent .apex-matrix th,#detailContent .apex-matrix td{
+ height:auto!important;padding:1px 6px!important;vertical-align:middle!important;
+ white-space:nowrap!important;overflow-wrap:normal!important;
+}
+#detailContent .apex-matrix th:first-child{
+ position:sticky!important;left:0!important;z-index:3!important;
+ background:#102d4e!important;width:158px!important;min-width:158px!important;max-width:158px!important;
+ font-size:10px!important;padding-left:9px!important;
+}
+#detailContent .apex-matrix thead th:first-child{z-index:5!important}
+#detailContent .apex-matrix .status{
+ display:inline-block!important;max-width:100%!important;
+ font-size:8px!important;line-height:1.05!important;padding:2px 3px!important;
+ white-space:normal!important;
+}
+#detailContent .forecast-intro{padding:4px 8px!important;gap:7px!important}
+#detailContent .forecast-intro>p{font-size:9px!important}
+#detailContent .overview-metrics>div{padding:2px 7px!important}
+#detailContent .day-selector{margin:1px 0!important}
+#detailContent .day-button{padding:5px 11px!important}
+#detailContent .matrix-header{margin:1px 0!important}
+#detailContent>.source-note:last-child{flex:none!important}
+@media(max-width:700px){
+ #detailContent .apex-matrix th:first-child{width:118px!important;min-width:118px!important;max-width:118px!important;font-size:9px!important}
+ #detailContent .apex-matrix th:not(:first-child),#detailContent .apex-matrix td{width:105px!important;min-width:105px!important;max-width:105px!important}
+}
