@@ -1,0 +1,44 @@
+APEX SOCIAL WEB V1.12 — ADMINISTRACIÓN DE DESPEGUES
+
+IMPORTANTE: para que una contraseña no sea visible a todos los visitantes de GitHub Pages,
+se necesita un pequeño backend. Incluimos uno gratuito para Cloudflare Workers.
+Sin configurar el Worker, la página sigue mostrando mapa y pronósticos,
+pero la edición NO podrá publicar cambios.
+
+A) ACTUALIZAR GITHUB PAGES
+1. En github.com/hgregotti-cell/apex-social-web, Add file > Upload files.
+2. Subir index.html, app.js, styles.css y config.js de este ZIP.
+3. Commit changes. No subir cloudflare-worker.js al sitio público es necesario
+   (aunque el código del Worker no contiene secretos).
+
+B) CREAR EL BACKEND GRATUITO
+1. Crear una cuenta gratuita en dash.cloudflare.com.
+2. Workers & Pages > Create > Worker > Deploy (sin contratar plan de pago).
+3. Edit code: reemplazar código por el de cloudflare-worker.js y Deploy.
+4. En Settings > Variables and Secrets, configurar:
+   - ADMIN_PASSWORD: VUELO (tipo Secret)
+   - GITHUB_TOKEN: token de GitHub fine-grained (tipo Secret)
+   - GITHUB_OWNER: hgregotti-cell (variable)
+   - GITHUB_REPO: apex-social-web (variable)
+   - ALLOWED_ORIGIN: https://hgregotti-cell.github.io (variable)
+5. Para crear el token: GitHub > Settings > Developer settings > Personal access tokens
+   > Fine-grained tokens. Limitar SOLO al repositorio apex-social-web;
+   Repository permissions > Contents > Read and write. Nunca poner el token
+   en config.js, en GitHub Pages ni compartirlo.
+6. Copiar la URL del Worker (https://...workers.dev) y reemplazar el ejemplo
+   de window.APEX_ADMIN_API en config.js. Subir config.js actualizado a GitHub.
+
+C) USAR EL EDITOR
+- Entrar a la web y tocar Administrar lugares.
+- Escribir solo VUELO; no pide usuario, repositorio ni token.
+- Nuevo despegue > Señalar en el mapa: el formulario se cierra temporalmente,
+  se conserva el centro/zoom, se coloca una manga naranja y azul al tocar el mapa.
+- Se puede arrastrar la manga o ingresar coordenadas manualmente.
+- Volver al formulario, definir nombre, sectores, límites y observaciones.
+- Guardar publica despegues.json en GitHub y la web se actualiza luego del despliegue.
+- Modificar y eliminar no desplazan el mapa. GitHub conserva historial recuperable.
+
+SEGURIDAD: una contraseña tan corta como VUELO es fácil de adivinar.
+El Worker evita publicarla en el código, pero para uso público permanente
+conviene una contraseña más larga y protección antiintentos (rate limiting).
+No guardar tokens ni contraseñas en archivos públicos.
