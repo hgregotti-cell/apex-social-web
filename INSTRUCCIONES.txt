@@ -1,0 +1,5 @@
+APEX SOCIAL WEB V1.3
+Subir index.html, app.js y styles.css a la raiz del repositorio apex-social-web con Add file > Upload files > Commit changes.
+No reemplazar despegues.json ni assets.
+Esperar Pages, actualizar Ctrl+F5.
+Mapa ocupa el area principal. Pronostico y Mis favoritos muestran tarjetas. Al tocar marcadores aparece el pronostico horario.

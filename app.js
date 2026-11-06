@@ -27,43 +27,28 @@ function card(site){const h=hourFor(site),a=assess(site,h),fav=state.favorites.h
 function renderCards(){const sites=visibleSites();$('count').textContent=sites.length;$('cards').innerHTML=sites.length?sites.map(card).join(''):'<div class="empty">No hay despegues para mostrar.</div>'}
 function renderMarkers(){if(!state.map)return;state.markers.forEach(m=>state.map.removeLayer(m));state.markers=[];visibleSites().forEach(s=>{const a=assess(s,hourFor(s));const icon=L.divIcon({className:'',html:`<div class="marker ${a.kind}">⌃</div>`,iconSize:[30,30],iconAnchor:[15,15]});const marker=L.marker([s.lat,s.lon],{icon}).addTo(state.map);marker.bindTooltip(s.name,{direction:'top'});marker.on('click',()=>showDetail(s.id));state.markers.push(marker)})}
 function render(){renderCards();renderMarkers();$('addBtn').hidden=!state.token;}
-// FIX WEB MAP 1.1: cada mosaico puede recuperarse con un proveedor alternativo.
-// Evita los huecos de 256px cuando una solicitud de imágenes falla.
-const ResilientTiles=L.TileLayer.extend({
-  createTile(coords,done){
-    const img=L.DomUtil.create('img','leaflet-tile');
-    img.alt='';img.setAttribute('role','presentation');
-    const z=coords.z,x=coords.x,y=coords.y;
-    const sources=this.options.satellite?[
-      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
-      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}?retry=1`
-    ]:[
-      `https://basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png`,
-      `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
-      `https://a.tile.openstreetmap.fr/hot/${z}/${x}/${y}.png`
-    ];
-    let n=0,completed=false;
-    const finish=(err)=>{if(!completed){completed=true;done(err,img)}};
-    img.onload=()=>finish(null);
-    img.onerror=()=>{n++;if(n<sources.length){img.src=sources[n]}else{img.style.background='#173b47';finish(new Error('Mosaico no disponible'))}};
-    img.referrerPolicy='strict-origin-when-cross-origin';
-    img.decoding='async';
-    img.src=sources[0];return img;
-  }
-});
+// V1.3: capas nativas Leaflet. Sin createTile personalizado: Leaflet
+// administra coordenadas, posicionamiento, zoom y carga de cada mosaico.
 function initMap(){
-  state.map=L.map('map',{zoomControl:false,preferCanvas:true,zoomSnap:1}).setView([-42.89,-71.32],10);
+  state.map=L.map('map',{zoomControl:false,preferCanvas:true,zoomSnap:1,
+    center:[-42.89,-71.32],zoom:10});
   L.control.zoom({position:'bottomright'}).addTo(state.map);
-  state.osm=new ResilientTiles('',{maxZoom:19,attribution:'© CARTO · © OpenStreetMap contributors'});
-  state.sat=new ResilientTiles('',{satellite:true,maxZoom:18,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'});
+  state.osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    subdomains:'abc',maxZoom:19,attribution:'© OpenStreetMap contributors',
+    crossOrigin:true,updateWhenIdle:false,keepBuffer:4
+  });
+  state.sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    maxZoom:18,attribution:'Imagery © Esri',crossOrigin:true,
+    updateWhenIdle:false,keepBuffer:4
+  });
   state.osm.addTo(state.map);
-  // Recalcular el tamaño tras el primer render, cambios de viewport y vuelta a la pestaña.
-  const resize=()=>state.map&&state.map.invalidateSize({pan:false,animate:false});
+  const resize=()=>{if(state.map)state.map.invalidateSize({pan:false,animate:false})};
   requestAnimationFrame(()=>requestAnimationFrame(resize));
   window.addEventListener('load',resize);
   window.addEventListener('resize',resize,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)resize()});
-  if(window.ResizeObserver){const observer=new ResizeObserver(resize);observer.observe($('map'));state.mapResizeObserver=observer;}
+  if(window.ResizeObserver){const observer=new ResizeObserver(resize);
+    observer.observe($('mapSection'));state.mapResizeObserver=observer;}
 }
 
 function showDetail(id){const s=state.sites.find(x=>x.id===id);if(!s)return;const hours=state.weather.get(id)||[],h=hourFor(s),a=assess(s,h);const next=hours.filter(x=>x.ts>=Date.now()-3600000).slice(0,24);$('detailContent').innerHTML=`<div class="eyebrow">PRONÓSTICO POR HORAS</div><h2>${safe(s.name)}</h2><div class="detail-meta"><span>⌖ ${fmt(s.lat,5)}, ${fmt(s.lon,5)}</span><span>Orientaciones: ${s.windFromDirections.map(windLabel).join(' · ')||'Sin configurar'}</span></div><div class="status ${a.kind}">${safe(a.label)}</div><p>${safe(a.reason)}</p><div style="overflow:auto"><table class="forecast-table"><thead><tr><th>Hora</th><th>Viento</th><th>Ráfaga</th><th>Desde</th><th>Lluvia</th><th>Evaluación</th></tr></thead><tbody>${next.map(x=>{const z=assess(s,x);return `<tr><td>${safe(x.local.slice(5,16).replace('T',' · '))}</td><td>${fmt(x.wind)} km/h</td><td>${fmt(x.gust)} km/h</td><td>${windLabel(x.dir)}</td><td>${fmt(x.rain,1)} mm</td><td><span class="status ${z.kind}" style="margin:0">${safe(z.label)}</span></td></tr>`}).join('')}</tbody></table></div><p style="font-size:11px">Modelo Open-Meteo. Predicción aproximada, no medición en el despegue. El terreno puede producir turbulencia y viento local no reflejados.</p>`;$('detailDialog').showModal();state.map?.panTo([s.lat,s.lon])}
@@ -75,5 +60,5 @@ function openEdit(id){if(!state.token){openAdmin();return}const s=state.sites.fi
 function renderSectors(){$('sectors').innerHTML=sectors.map((s,i)=>`<button type="button" class="sector ${state.selectedDirections.includes(i*22.5)?'selected':''}" data-deg="${i*22.5}">${s}</button>`).join('')}
 async function saveEdit(ev){ev.preventDefault();if(!state.token)return;const name=$('siteName').value.trim(),lat=Number($('siteLat').value),lon=Number($('siteLon').value);if(!name||!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180||!state.selectedDirections.length){toast('Completá nombre, coordenadas y al menos una orientación.');return}const id=state.editing||('site_'+Date.now().toString(36));const item={id,name,lat,lon,windFromDirections:[...state.selectedDirections].sort((a,b)=>a-b)};const next=state.editing?state.sites.map(s=>s.id===id?item:s):[...state.sites,item];const btn=$('editForm').querySelector('[type=submit]');btn.disabled=true;const ok=await publishSites(next);btn.disabled=false;if(ok){$('editDialog').close();state.map.setView([lat,lon],12);loadWeather()}}
 async function deleteSite(id){if(!state.token)return;const s=state.sites.find(x=>x.id===id);if(!s)return;const typed=prompt(`Para eliminar «${s.name}», escribí ELIMINAR.\nSe publicará el cambio en GitHub (recuperable desde el historial).`);if(typed!=='ELIMINAR')return;const next=state.sites.filter(x=>x.id!==id);if(await publishSites(next))state.weather.delete(id)}
-function init(){initMap();loadSites();$('search').addEventListener('input',render);$('filter').addEventListener('change',render);$('refreshBtn').addEventListener('click',()=>loadWeather());$('layerBtn').addEventListener('click',()=>{state.map.removeLayer(state.satellite?state.sat:state.osm);state.satellite=!state.satellite;(state.satellite?state.sat:state.osm).addTo(state.map);$('layerBtn').textContent=state.satellite?'▤ Calles':'◫ Satélite'});document.querySelectorAll('.nav[data-view]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav[data-view]').forEach(b=>b.classList.toggle('active',b===btn));state.view=btn.dataset.view;$('pageTitle').textContent=state.view==='favorites'?'Mis favoritos':state.view==='forecast'?'Pronóstico de vuelo':'Mapa de despegues';$('pageSub').textContent=state.view==='forecast'?'Seleccioná un despegue para consultar las próximas 24 horas':'Explorá lugares, orientaciones y condiciones previstas';render()}));$('adminBtn').addEventListener('click',()=>state.token?(state.token='',render(),toast('Administración cerrada')):openAdmin());$('addBtn').addEventListener('click',()=>openEdit(null));$('loginBtn').addEventListener('click',adminLogin);$('editForm').addEventListener('submit',saveEdit);$('sectors').addEventListener('click',e=>{const btn=e.target.closest('[data-deg]');if(!btn)return;const deg=Number(btn.dataset.deg);state.selectedDirections=state.selectedDirections.includes(deg)?state.selectedDirections.filter(x=>x!==deg):[...state.selectedDirections,deg];renderSectors()});document.addEventListener('click',e=>{const close=e.target.closest('[data-close]');if(close){$(close.dataset.close).close();return}const btn=e.target.closest('[data-action]');if(!btn)return;const {action,id}=btn.dataset;if(action==='favorite'){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);localStorage.setItem('apex_favs',JSON.stringify([...state.favorites]));renderCards()}if(action==='detail')showDetail(id);if(action==='edit')openEdit(id);if(action==='delete')deleteSite(id)});}
+function init(){document.body.classList.add('map-mode');initMap();loadSites();$('search').addEventListener('input',render);$('filter').addEventListener('change',render);$('refreshBtn').addEventListener('click',()=>loadWeather());$('layerBtn').addEventListener('click',()=>{state.map.removeLayer(state.satellite?state.sat:state.osm);state.satellite=!state.satellite;(state.satellite?state.sat:state.osm).addTo(state.map);$('layerBtn').textContent=state.satellite?'▤ Calles':'◫ Satélite'});document.querySelectorAll('.nav[data-view]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav[data-view]').forEach(b=>b.classList.toggle('active',b===btn));state.view=btn.dataset.view;document.body.classList.toggle('map-mode',state.view==='map');$('pageTitle').textContent=state.view==='favorites'?'Mis favoritos':state.view==='forecast'?'Pronóstico de vuelo':'Mapa de despegues';$('pageSub').textContent=state.view==='forecast'?'Seleccioná un despegue para consultar las próximas 24 horas':'Explorá lugares, orientaciones y condiciones previstas';render();requestAnimationFrame(()=>state.map?.invalidateSize({pan:false}))}));$('adminBtn').addEventListener('click',()=>state.token?(state.token='',render(),toast('Administración cerrada')):openAdmin());$('addBtn').addEventListener('click',()=>openEdit(null));$('loginBtn').addEventListener('click',adminLogin);$('editForm').addEventListener('submit',saveEdit);$('sectors').addEventListener('click',e=>{const btn=e.target.closest('[data-deg]');if(!btn)return;const deg=Number(btn.dataset.deg);state.selectedDirections=state.selectedDirections.includes(deg)?state.selectedDirections.filter(x=>x!==deg):[...state.selectedDirections,deg];renderSectors()});document.addEventListener('click',e=>{const close=e.target.closest('[data-close]');if(close){$(close.dataset.close).close();return}const btn=e.target.closest('[data-action]');if(!btn)return;const {action,id}=btn.dataset;if(action==='favorite'){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);localStorage.setItem('apex_favs',JSON.stringify([...state.favorites]));renderCards()}if(action==='detail')showDetail(id);if(action==='edit')openEdit(id);if(action==='delete')deleteSite(id)});}
 init();
