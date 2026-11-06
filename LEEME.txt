@@ -1,2 +1,1 @@
-Apex Social Web V1.2 - correccion de posicionamiento de mosaicos Leaflet.
-Subir app.js y styles.css a la raiz del repositorio apex-social-web y confirmar cambios.
+Corregido hash SRI de Leaflet CSS. Subir solo index.html a la raiz de GitHub, reemplazar y hacer commit. No tocar otros archivos. Esperar Pages y Ctrl+F5.
