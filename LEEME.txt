@@ -1,6 +1,6 @@
-APEX SOCIAL WEB V1.10 — MAPA CALLES AL INICIAR
+Apex Social Web V1.11
+- Vista inicial: Satélite, incluso al actualizar o restaurar la pestaña.
+- Botón de capas: Vista: Satélite / Vista: Calles.
+- En celular: cabecera compacta, mapa centrado y ajustado al alto visible para evitar tener que bajar la página.
 
-Subí index.html y app.js al repositorio GitHub, reemplazando los anteriores.
-La página arranca siempre en Calles incluso tras actualizar/restaurar pestaña.
-El botón indica la vista actual: Vista: Calles o Vista: Satélite.
-Los demás archivos de la versión anterior se conservan.
+GitHub: descomprimir y subir index.html, app.js, styles.css y assets/ si corresponde. Los archivos existentes de assets y despegues.json deben conservarse.

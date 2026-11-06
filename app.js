@@ -2,7 +2,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const sectors=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
-const state={sites:[],weather:new Map(),favorites:new Set(JSON.parse(localStorage.getItem('apex_favs')||'[]')),view:'map',map:null,markers:[],satellite:false,token:'',owner:localStorage.getItem('apex_owner')||'',repo:localStorage.getItem('apex_repo')||'',editing:null,selectedDirections:[],pending:false};
+const state={sites:[],weather:new Map(),favorites:new Set(JSON.parse(localStorage.getItem('apex_favs')||'[]')),view:'map',map:null,markers:[],satellite:true,token:'',owner:localStorage.getItem('apex_owner')||'',repo:localStorage.getItem('apex_repo')||'',editing:null,selectedDirections:[],pending:false};
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const degDiff=(a,b)=>Math.abs(((a-b+540)%360)-180);
 const windLabel=d=>d==null?'—':sectors[Math.round(((d%360)+360)%360/22.5)%16];
@@ -58,7 +58,7 @@ function initMap(){
     maxZoom:18,attribution:'Imagery © Esri',crossOrigin:true,
     updateWhenIdle:false,keepBuffer:4
   });
-  state.satellite=false;state.osm.addTo(state.map);$('layerBtn').textContent='Vista: Calles';$('layerBtn').title='Estás viendo Calles. Clic para cambiar a Satélite';
+  state.satellite=true;state.sat.addTo(state.map);$('layerBtn').textContent='Vista: Satélite';$('layerBtn').title='Estás viendo Satélite. Clic para cambiar a Calles';
   state.map.on('moveend',()=>scheduleCenterWind());
   const resize=()=>{if(state.map)state.map.invalidateSize({pan:false,animate:false})};
   requestAnimationFrame(()=>requestAnimationFrame(resize));
@@ -140,5 +140,5 @@ init();
 // Selector de días del pronóstico ampliado
 document.addEventListener('click',e=>{const b=e.target.closest?.('[data-day][data-site]');if(b)showDetail(b.dataset.site,b.dataset.day)});
 
-// Cada apertura o restauración de página comienza en Calles.
-window.addEventListener('pageshow',()=>{if(!state.map||!state.osm)return;if(state.sat&&state.map.hasLayer(state.sat))state.map.removeLayer(state.sat);if(!state.map.hasLayer(state.osm))state.osm.addTo(state.map);state.satellite=false;const btn=document.getElementById('layerBtn');if(btn){btn.textContent='Vista: Calles';btn.title='Estás viendo Calles. Clic para cambiar a Satélite';}});
+// Cada apertura o restauración de página comienza en Satélite.
+window.addEventListener('pageshow',()=>{if(!state.map||!state.sat)return;if(state.osm&&state.map.hasLayer(state.osm))state.map.removeLayer(state.osm);if(!state.map.hasLayer(state.sat))state.sat.addTo(state.map);state.satellite=true;const btn=document.getElementById('layerBtn');if(btn){btn.textContent='Vista: Satélite';btn.title='Estás viendo Satélite. Clic para cambiar a Calles';}});

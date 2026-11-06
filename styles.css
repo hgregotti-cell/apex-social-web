@@ -180,3 +180,32 @@ body:not(.map-mode) .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1
  #detailContent .apex-matrix th:first-child{width:118px!important;min-width:118px!important;max-width:118px!important;font-size:9px!important}
  #detailContent .apex-matrix th:not(:first-child),#detailContent .apex-matrix td{width:105px!important;min-width:105px!important;max-width:105px!important}
 }
+
+/* V1.11: pantalla móvil: mapa centrado y completo sin desplazamiento vertical inicial. */
+@media (max-width:700px){
+ body.map-mode{overflow:hidden}
+ body.map-mode .app{height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+ body.map-mode .sidebar{flex:0 0 auto;padding:7px 9px 5px;gap:3px}
+ body.map-mode .brand{margin:0 0 2px;width:100%;gap:8px}
+ body.map-mode .brand img{width:30px;height:30px}
+ body.map-mode .brand b{font-size:15px}
+ body.map-mode .brand small{font-size:7px;margin-top:1px}
+ body.map-mode .nav{padding:7px 5px;font-size:10px}
+ body.map-mode main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;overflow:hidden;padding:7px 9px max(7px,env(safe-area-inset-bottom))}
+ body.map-mode header{margin:0 0 6px;flex:0 0 auto;align-items:center}
+ body.map-mode h1{font-size:19px;margin:2px 0}
+ body.map-mode header p{font-size:10px}
+ body.map-mode .eyebrow{font-size:8px}
+ body.map-mode .toolbar{margin-bottom:7px;gap:6px;flex:0 0 auto}
+ body.map-mode .search{flex-basis:100%}
+ body.map-mode .search input{padding:8px 0;font-size:12px}
+ body.map-mode .toolbar select{padding:7px;font-size:11px}
+ body.map-mode .content{display:block;flex:1;min-height:0}
+ body.map-mode .map-wrap{height:100%;min-height:0;max-height:none;margin:0;border-radius:15px}
+ body.map-mode footer{display:none}
+ body.map-mode .map-head>div{padding:7px 9px}
+ body.map-mode .map-head strong{font-size:10px}
+ body.map-mode .map-head small{font-size:8px}
+ body.map-mode .map-bottom{left:6px;right:6px;bottom:7px}
+ body.map-mode .map-compass{max-width:70vw}
+}
