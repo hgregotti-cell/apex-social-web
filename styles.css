@@ -434,3 +434,6 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 .model-comparison h4{font-size:12px;margin:8px 0}
 .model-loading{padding:14px 5px;color:#b8d6e9}
 @media(max-width:700px){#detailDialog .forecast-evolution .enhanced-graph svg{min-height:120px}.wind-summary-cards>div{padding:10px 6px}.wind-summary-cards small{font-size:9px}}
+
+/* V1.25: resultados de lugares y despegues */
+.place-results .place-option{min-height:53px}.place-results .place-loading{padding:10px 12px;color:#b3cde0;font-size:12px}
