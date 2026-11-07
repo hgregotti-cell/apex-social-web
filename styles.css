@@ -309,3 +309,31 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
  .hour-card{padding:12px}.hour-card-grid{gap:7px}.hour-field strong{font-size:15px}
 }
 @media(prefers-reduced-motion:reduce){.apex-wind-flow{display:none}}
+
+/* V1.19 · Tabla completa protagonista, analítica en pestaña separada */
+#detailDialog .forecast-tabs{display:flex;gap:8px;flex:0 0 auto;margin:5px 0 2px;min-width:0}
+#detailDialog .forecast-tab{flex:1;min-width:0;border:1px solid #325b80;border-radius:10px;padding:11px 8px;background:#102e4e;color:#b9d4ea;font-size:14px;font-weight:800}
+#detailDialog .forecast-tab.active{background:#ff7926;color:#081b2e;border-color:#ff7926}
+#detailDialog .forecast-tab-panel{min-height:0;min-width:0}
+#detailDialog[data-forecast-tab="hourly"] .forecast-evolution,#detailDialog[data-forecast-tab="evolution"] .forecast-hourly{display:none!important}
+#detailDialog .forecast-hourly{display:flex;flex:1 1 auto;flex-direction:column;overflow:hidden}
+#detailDialog .forecast-hourly .forecast-data{flex:1 1 auto;min-height:0;display:flex}
+#detailDialog .forecast-hourly .matrix-scroll{display:block!important;flex:1 1 auto;min-height:0;overflow:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#detailDialog .forecast-evolution{flex:1 1 auto;overflow-y:auto;padding:4px 2px 20px}
+#detailDialog .forecast-evolution .forecast-insights{max-height:none!important;overflow:visible!important;margin:0}
+#detailDialog .forecast-evolution .wind-graph svg{height:145px}
+#detailDialog .forecast-hourly .apex-matrix{table-layout:auto!important;width:max-content!important;min-width:100%!important;border-collapse:separate;border-spacing:0}
+#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{box-sizing:border-box;min-width:112px!important;width:112px!important;max-width:112px!important;padding:10px 7px!important;font-size:14px!important;line-height:1.25!important;white-space:normal!important;overflow-wrap:normal!important;text-align:center;font-variant-numeric:tabular-nums}
+#detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:132px!important;width:132px!important;max-width:132px!important;text-align:left!important;padding-left:9px!important;position:sticky;left:0;z-index:3;background:#133457!important}
+#detailDialog .forecast-hourly .apex-matrix thead th{position:sticky;top:0;z-index:4;background:#163a5c!important;font-size:14px!important}
+#detailDialog .forecast-hourly .apex-matrix thead th:first-child{z-index:5}
+#detailDialog .forecast-hourly .apex-matrix .status{font-size:10px!important;padding:6px 3px!important;line-height:1.15!important;margin:0!important;overflow-wrap:anywhere}
+#detailDialog .forecast-hourly .matrix-header{flex:0 0 auto!important;margin:3px 0 7px!important}
+@media(max-width:700px){
+ #detailDialog .forecast-tabs{gap:6px;margin:4px 0}
+ #detailDialog .forecast-tab{font-size:13px;padding:12px 5px}
+ #detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{min-width:109px!important;width:109px!important;max-width:109px!important;padding:11px 6px!important;font-size:14px!important}
+ #detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:126px!important;width:126px!important;max-width:126px!important;font-size:12px!important}
+ #detailDialog .forecast-hourly .apex-matrix .status{font-size:10px!important}
+ #detailDialog .forecast-evolution .wind-graph svg{height:120px}
+}
