@@ -240,3 +240,15 @@ html,body{max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-si
  body.map-mode .toolbar #manageBtn,body.map-mode .toolbar #addBtn{flex:1 1 auto;font-size:11px;padding:9px 10px}
  body.map-mode .toolbar #manageBtn[hidden],body.map-mode .toolbar #addBtn[hidden]{display:none!important}
 }
+
+/* Menú de acciones al tocar un parapente (solo administrador autenticado). */
+.apex-marker-menu{display:flex;flex-direction:column;gap:7px;color:#eaf3ff;font-family:inherit}
+.apex-marker-menu strong{font-size:15px}
+.apex-marker-menu span{font-size:12px;color:#a6c4e4}
+.apex-marker-actions{display:flex;gap:5px;flex-wrap:wrap}
+.apex-marker-actions button{border:1px solid #385f87;border-radius:9px;background:#17385b;color:#f3f8ff;padding:9px 10px;font-size:14px;font-weight:700;min-height:40px;cursor:pointer}
+.apex-marker-actions button:last-child{color:#ff8d97;border-color:#89424e}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0a203b;color:#eaf3ff}
+.leaflet-popup-content{margin:13px 15px}
+.leaflet-container a.leaflet-popup-close-button{color:#dcecff}
+@media(max-width:600px){.apex-marker-actions button{flex:1 1 auto;font-size:14px}.leaflet-popup-content{margin:12px}}
