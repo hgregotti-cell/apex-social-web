@@ -252,3 +252,9 @@ html,body{max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-si
 .leaflet-popup-content{margin:13px 15px}
 .leaflet-container a.leaflet-popup-close-button{color:#dcecff}
 @media(max-width:600px){.apex-marker-actions button{flex:1 1 auto;font-size:14px}.leaflet-popup-content{margin:12px}}
+
+/* V1.16: selector de ubicación inmediatamente después del nombre */
+#editDialog .pick-tools.wide{grid-column:1/-1;margin:0 0 4px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#editDialog .pick-tools.wide button{font-weight:800;border-color:#3278ac;color:#e6f5ff}
+#editDialog .pick-tools.wide small{flex:1 1 190px;font-size:11px;line-height:1.35}
+@media(max-width:700px){#editDialog .pick-tools.wide{grid-column:1/-1}#editDialog .pick-tools.wide button{width:100%;padding:12px}}
