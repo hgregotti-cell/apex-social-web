@@ -310,17 +310,68 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 }
 @media(prefers-reduced-motion:reduce){.apex-wind-flow{display:none}}
 
-/* V1.19 · Tabla compacta completa: caben todas las variables en la ventana móvil */
+/* V1.19 · Tabla completa protagonista, analítica en pestaña separada */
+#detailDialog .forecast-tabs{display:flex;gap:8px;flex:0 0 auto;margin:5px 0 2px;min-width:0}
+#detailDialog .forecast-tab{flex:1;min-width:0;border:1px solid #325b80;border-radius:10px;padding:11px 8px;background:#102e4e;color:#b9d4ea;font-size:14px;font-weight:800}
+#detailDialog .forecast-tab.active{background:#ff7926;color:#081b2e;border-color:#ff7926}
+#detailDialog .forecast-tab-panel{min-height:0;min-width:0}
+#detailDialog[data-forecast-tab="hourly"] .forecast-evolution,#detailDialog[data-forecast-tab="evolution"] .forecast-hourly{display:none!important}
+#detailDialog .forecast-hourly{display:flex;flex:1 1 auto;flex-direction:column;overflow:hidden}
+#detailDialog .forecast-hourly .forecast-data{flex:1 1 auto;min-height:0;display:flex}
+#detailDialog .forecast-hourly .matrix-scroll{display:block!important;flex:1 1 auto;min-height:0;overflow:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#detailDialog .forecast-evolution{flex:1 1 auto;overflow-y:auto;padding:4px 2px 20px}
+#detailDialog .forecast-evolution .forecast-insights{max-height:none!important;overflow:visible!important;margin:0}
+#detailDialog .forecast-evolution .wind-graph svg{height:145px}
+#detailDialog .forecast-hourly .apex-matrix{table-layout:auto!important;width:max-content!important;min-width:100%!important;border-collapse:separate;border-spacing:0}
+#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{box-sizing:border-box;min-width:112px!important;width:112px!important;max-width:112px!important;padding:10px 7px!important;font-size:14px!important;line-height:1.25!important;white-space:normal!important;overflow-wrap:normal!important;text-align:center;font-variant-numeric:tabular-nums}
+#detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:132px!important;width:132px!important;max-width:132px!important;text-align:left!important;padding-left:9px!important;position:sticky;left:0;z-index:3;background:#133457!important}
+#detailDialog .forecast-hourly .apex-matrix thead th{position:sticky;top:0;z-index:4;background:#163a5c!important;font-size:14px!important}
+#detailDialog .forecast-hourly .apex-matrix thead th:first-child{z-index:5}
+#detailDialog .forecast-hourly .apex-matrix .status{font-size:10px!important;padding:6px 3px!important;line-height:1.15!important;margin:0!important;overflow-wrap:anywhere}
+#detailDialog .forecast-hourly .matrix-header{flex:0 0 auto!important;margin:3px 0 7px!important}
 @media(max-width:700px){
- #detailContent .apex-matrix{line-height:1.12!important;table-layout:fixed!important}
- #detailContent .apex-matrix th,#detailContent .apex-matrix td{font-size:12px!important;padding:5px 4px!important;height:31px!important;min-height:31px!important;line-height:1.12!important;width:94px!important;min-width:94px!important;max-width:94px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important}
- #detailContent .apex-matrix th:first-child{font-size:10px!important;padding:5px 5px!important;width:108px!important;min-width:108px!important;max-width:108px!important;white-space:normal!important}
- #detailContent .apex-matrix thead th{font-size:12px!important;height:35px!important}
- #detailContent .apex-matrix .status{font-size:9px!important;padding:3px 2px!important;line-height:1.05!important;white-space:normal!important}
- #detailContent .matrix-header{margin:3px 0!important;padding:2px 0!important}
- #detailContent .matrix-header strong{font-size:12px!important}
- #detailDialog[data-forecast-mode="table"] .forecast-data .matrix-scroll{overflow:auto!important}
+ #detailDialog .forecast-tabs{gap:6px;margin:4px 0}
+ #detailDialog .forecast-tab{font-size:13px;padding:12px 5px}
+ #detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{min-width:109px!important;width:109px!important;max-width:109px!important;padding:11px 6px!important;font-size:14px!important}
+ #detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:126px!important;width:126px!important;max-width:126px!important;font-size:12px!important}
+ #detailDialog .forecast-hourly .apex-matrix .status{font-size:10px!important}
+ #detailDialog .forecast-evolution .wind-graph svg{height:120px}
 }
+
+/* V1.20 — Pronóstico como pantalla completa, con tres vistas independientes */
+#detailDialog{inset:0!important;margin:auto!important;width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;border-radius:0!important;padding:12px 12px 10px!important;box-sizing:border-box!important;overflow:hidden!important}
+#detailContent{height:100%!important;display:flex!important;flex-direction:column!important;min-height:0!important;gap:6px!important}
+#detailContent>.eyebrow{font-size:10px!important;flex:none!important;padding-right:45px}
+#detailContent>h2{font-size:clamp(20px,4.6vw,30px)!important;line-height:1.13!important;margin:0!important;flex:none!important;padding-right:42px}
+#detailContent>.detail-meta{flex:none!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none;gap:5px!important}
+#detailContent>.detail-meta span{flex:none!important;white-space:nowrap!important}
+#detailDialog .close{top:8px!important;right:10px!important;z-index:50!important}
+#detailContent .day-selector{flex:none!important;margin:3px 0!important;padding-bottom:3px;gap:5px!important}
+#detailContent .day-button{font-size:13px!important;padding:9px 11px!important}
+#detailDialog .forecast-tabs{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;flex:none!important;gap:5px!important;margin:1px 0 5px!important}
+#detailDialog .forecast-tab{font-size:12px!important;line-height:1.15!important;padding:10px 4px!important;min-height:45px!important}
+#detailDialog .forecast-tab-panel{min-height:0!important}
+#detailDialog[data-forecast-tab="hourly"] .forecast-evolution,#detailDialog[data-forecast-tab="hourly"] .forecast-summary,#detailDialog[data-forecast-tab="evolution"] .forecast-hourly,#detailDialog[data-forecast-tab="evolution"] .forecast-summary,#detailDialog[data-forecast-tab="summary"] .forecast-hourly,#detailDialog[data-forecast-tab="summary"] .forecast-evolution{display:none!important}
+#detailDialog .forecast-hourly{flex:1 1 0!important;min-height:0!important;display:flex;flex-direction:column!important;overflow:hidden!important}
+#detailDialog .forecast-hourly .matrix-header{flex:none!important;margin:1px 0 5px!important;font-size:12px!important}
+#detailDialog .forecast-hourly .forecast-data{display:flex!important;flex:1 1 0!important;min-height:0!important}
+#detailDialog .forecast-hourly .matrix-scroll{flex:1 1 0!important;min-height:0!important;max-height:none!important;overflow:auto!important;scrollbar-width:thin!important;-webkit-overflow-scrolling:touch}
+#detailDialog .forecast-hourly .apex-matrix{height:auto!important;min-height:100%!important;width:max-content!important;table-layout:fixed!important}
+#detailDialog .forecast-hourly .apex-matrix thead tr,#detailDialog .forecast-hourly .apex-matrix tbody tr{height:auto!important}
+#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{font-size:15px!important;line-height:1.24!important;min-width:128px!important;width:128px!important;max-width:128px!important;padding:11px 9px!important;vertical-align:middle!important;white-space:normal!important}
+#detailDialog .forecast-hourly .apex-matrix th:first-child{font-size:12px!important;min-width:134px!important;width:134px!important;max-width:134px!important;position:sticky!important;left:0!important;z-index:3!important}
+#detailDialog .forecast-hourly .apex-matrix thead th{font-size:15px!important;position:sticky!important;top:0!important;z-index:4!important}
+#detailDialog .forecast-hourly .apex-matrix thead th:first-child{z-index:5!important}
+#detailDialog .forecast-hourly .apex-matrix .status{font-size:11px!important;line-height:1.2!important;padding:7px 5px!important}
+#detailDialog .forecast-evolution,#detailDialog .forecast-summary{flex:1 1 0!important;min-height:0!important;overflow:auto!important;padding:6px 3px 18px!important}
+#detailDialog .forecast-summary .forecast-overview{display:block!important;margin:0!important}
+#detailDialog .forecast-summary .forecast-intro{display:block!important;padding:16px!important}
+#detailDialog .forecast-summary .overview-metrics{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:12px 0!important}
+#detailDialog .forecast-summary .overview-metrics>div{padding:14px!important}
+#detailDialog .forecast-summary .overview-metrics strong{font-size:22px!important}
+#detailContent>.source-note:last-child{flex:none!important;font-size:10px!important;line-height:1.2!important;max-height:27px!important;overflow:hidden!important}
+@media(max-width:700px){#detailDialog{padding:10px 7px 8px!important}#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{min-width:122px!important;width:122px!important;max-width:122px!important;font-size:15px!important;padding:10px 7px!important}#detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:121px!important;width:121px!important;max-width:121px!important;font-size:12px!important}#detailDialog .forecast-tab{font-size:11px!important;padding:9px 3px!important}#detailContent>.eyebrow{font-size:9px!important}}
+
 /* Búsqueda combinada con resultados sin abandonar el mapa */
 .apex-place-search{position:relative;z-index:1100;min-width:0}
 .apex-place-search input{min-width:0;flex:1}
@@ -336,3 +387,18 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 .place-option em{font-size:11px;font-style:normal;color:#7fe4c2}
 .place-loading{padding:14px;color:#bbd1e1;font-size:13px}
 @media(max-width:700px){.apex-place-search{flex-basis:100%!important}.apex-place-search input{font-size:16px!important}.place-results{max-height:45dvh}}
+
+/* V1.21: no recortar la última variable; aprovechar altura y ancho móvil */
+#detailDialog .forecast-hourly .matrix-scroll{overflow:auto!important;min-height:0!important;max-height:none!important;flex:1 1 0!important}
+#detailDialog .forecast-hourly .apex-matrix{min-height:0!important;height:auto!important}
+#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{padding:5px 6px!important;line-height:1.12!important;font-size:13px!important;min-width:112px!important;width:112px!important;max-width:112px!important}
+#detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:113px!important;width:113px!important;max-width:113px!important;font-size:11px!important}
+#detailDialog .forecast-hourly .apex-matrix .status{padding:3px 3px!important;font-size:10px!important;line-height:1.05!important;margin:0!important}
+#detailDialog .forecast-hourly .matrix-header{font-size:11px!important;margin:0 0 3px!important}
+#detailDialog .forecast-hourly .matrix-header span{display:none!important}
+#detailContent .day-selector{padding-bottom:1px!important;margin:1px 0!important}
+#detailContent .day-button{padding:7px 9px!important}
+#detailDialog .forecast-tabs{margin:0 0 2px!important}
+#detailDialog .forecast-tab{min-height:39px!important;padding:7px 3px!important}
+#detailContent>.source-note:last-child{font-size:9px!important;line-height:1.12!important;max-height:22px!important}
+@media(max-width:700px){#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{min-width:108px!important;width:108px!important;max-width:108px!important;font-size:12px!important;padding:5px 4px!important}#detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:112px!important;width:112px!important;max-width:112px!important;font-size:10.5px!important}}
