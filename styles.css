@@ -267,3 +267,45 @@ html,body{max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-si
 .forecast-insights{background:#071e37;border:1px solid #284563;border-radius:12px;padding:11px 13px;margin:9px 0}.insight-top{display:flex;justify-content:space-between;gap:12px;align-items:center}.insight-top p{margin:5px 0;font-weight:700;color:#71e0b4}.insight-top small{font-size:11px;color:#a9bed2}.wind-graph{margin-top:9px}.wind-graph svg{width:100%;height:78px;display:block;background:linear-gradient(180deg,#092a46,#06172d);border-radius:8px}.graph-legend{font-size:10px;color:#a9c9e0;margin-top:5px}.model-comparison{margin-top:12px;padding:12px;background:#0b2b48;border-radius:9px}.model-comparison p,.model-comparison small{font-size:11px;color:#b8d1e3}.model-table-wrap{overflow-x:auto}.model-table-wrap table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}.model-table-wrap th,.model-table-wrap td{border-bottom:1px solid #2d4a66;padding:7px;text-align:left}.editor-preview{display:flex;flex-direction:column;gap:6px;background:#0b2b48;border:1px solid #355c7b;border-radius:10px;padding:10px;margin:12px 0;color:#d9efff}.editor-preview span{color:#ffad77;font-weight:700}.editor-preview small{color:#a9c6dc}
 body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 @media(max-width:700px){.apex-timebar{gap:6px;padding:7px 6px;margin:4px 0}.apex-timebar>span{display:none}.apex-timebar strong{min-width:72px;font-size:10px}.apex-timebar button{padding:7px 6px;font-size:11px}.quick-metrics{gap:5px}.quick-metrics b{font-size:12px}.insight-top{align-items:flex-start;flex-wrap:wrap}.wind-graph svg{height:55px}body.map-mode .map-wrap{height:calc(100% - 44px)!important}}
+
+/* V1.18 · Pronóstico legible: tarjetas horarias en móvil y tabla panorámica */
+#detailDialog{width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important;padding:14px 14px!important}
+#detailContent{gap:8px!important}
+#detailContent .forecast-insights{flex:0 0 auto}
+.forecast-view-switch{display:flex;gap:8px;flex:0 0 auto;align-items:center}
+.forecast-mode-btn{border:1px solid #365e81;background:#102d4c;color:#b8d2ea;border-radius:10px;padding:10px 14px;font-weight:800;font-size:13px}
+.forecast-mode-btn.active{background:#ff7926;color:#091d31;border-color:#ff7926}
+.forecast-data{display:flex;flex:1 1 auto;min-height:0;min-width:0}
+.forecast-data .hour-cards{display:none}
+#detailDialog[data-forecast-mode="cards"] .forecast-data .matrix-scroll{display:none!important}
+#detailDialog[data-forecast-mode="cards"] .forecast-data .hour-cards{display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:3px 4px 18px;scrollbar-color:#557fa2 #0b2543}
+.hour-card{background:#0c2848;border:1px solid #315a7b;border-radius:15px;padding:14px}
+.hour-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.hour-card-head>strong{font-size:24px;color:#fff;font-variant-numeric:tabular-nums}
+.hour-card-head .status{max-width:72%;font-size:12px;white-space:normal;text-align:center}
+.hour-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.hour-field{background:#102f51;border:1px solid #234b6c;border-radius:10px;padding:10px 9px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.hour-field small{color:#a6c4de;font-size:11px;font-weight:700;letter-spacing:.02em}
+.hour-field strong{font-size:16px;color:#f6fbff;overflow-wrap:anywhere;font-weight:700;font-variant-numeric:tabular-nums}
+#detailDialog[data-forecast-mode="table"] .forecast-data .hour-cards{display:none}
+#detailDialog .forecast-data .matrix-scroll{flex:1 1 auto!important;min-width:0!important;min-height:0!important;overflow:auto!important;max-height:none!important}
+#detailContent .apex-matrix{height:auto!important;min-height:0!important;font-size:14px!important;line-height:1.35!important}
+#detailContent .apex-matrix th,#detailContent .apex-matrix td{font-size:14px!important;padding:12px 13px!important;width:145px!important;min-width:145px!important;max-width:none!important;white-space:normal!important}
+#detailContent .apex-matrix th:first-child{width:165px!important;min-width:165px!important;max-width:165px!important;position:sticky;left:0;z-index:3;background:#133457!important;text-align:left!important}
+#detailContent .apex-matrix thead th{position:sticky;top:0;z-index:4;background:#163a5c!important;font-size:15px!important}
+#detailContent .apex-matrix thead th:first-child{z-index:5}
+#detailContent .apex-matrix .status{font-size:11px!important;white-space:normal!important}
+.apex-wind-flow{position:absolute;pointer-events:none;z-index:1;opacity:.96;mix-blend-mode:screen}
+@media(max-width:700px){
+ #detailDialog{width:calc(100vw - 8px)!important;height:calc(100dvh - 8px)!important;padding:12px 10px!important;border-radius:13px!important}
+ #detailContent .forecast-overview{flex:0 0 auto!important}
+ #detailContent .forecast-insights{max-height:33dvh;overflow-y:auto;overscroll-behavior:contain}
+ #detailContent .matrix-header{flex:0 0 auto!important}
+ #detailContent .matrix-header span{display:none}
+ .forecast-view-switch{gap:6px}
+ .forecast-mode-btn{flex:1;padding:11px 7px;font-size:13px}
+ #detailContent .apex-matrix th,#detailContent .apex-matrix td{font-size:14px!important;padding:12px 10px!important;width:142px!important;min-width:142px!important}
+ #detailContent .apex-matrix th:first-child{font-size:12px!important;width:135px!important;min-width:135px!important;max-width:135px!important}
+ .hour-card{padding:12px}.hour-card-grid{gap:7px}.hour-field strong{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){.apex-wind-flow{display:none}}
