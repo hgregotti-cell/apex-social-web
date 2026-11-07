@@ -402,3 +402,35 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 #detailDialog .forecast-tab{min-height:39px!important;padding:7px 3px!important}
 #detailContent>.source-note:last-child{font-size:9px!important;line-height:1.12!important;max-height:22px!important}
 @media(max-width:700px){#detailDialog .forecast-hourly .apex-matrix th,#detailDialog .forecast-hourly .apex-matrix td{min-width:108px!important;width:108px!important;max-width:108px!important;font-size:12px!important;padding:5px 4px!important}#detailDialog .forecast-hourly .apex-matrix th:first-child{min-width:112px!important;width:112px!important;max-width:112px!important;font-size:10.5px!important}}
+
+/* V1.22: tabla centrada sin estiramiento artificial, manteniendo scroll si hace falta */
+#detailDialog .forecast-hourly{justify-content:center!important;min-height:0!important}
+#detailDialog .forecast-hourly .forecast-data{flex:0 1 auto!important;min-height:0!important;max-height:100%!important;display:flex!important;align-items:stretch!important}
+#detailDialog .forecast-hourly .matrix-scroll{flex:1 1 auto!important;min-height:0!important;max-height:100%!important;overflow:auto!important}
+#detailDialog .forecast-hourly .apex-matrix{height:auto!important;min-height:0!important}
+#detailDialog .forecast-evolution .forecast-insights{display:flex;flex-direction:column;gap:13px;padding-bottom:22px}
+#detailDialog .forecast-evolution .wind-graph{width:100%;min-width:0;padding:10px 8px}
+#detailDialog .forecast-evolution .enhanced-graph svg{width:100%;height:auto!important;aspect-ratio:780/238;min-height:155px;max-height:285px;display:block}
+.wind-chart-title{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;margin-bottom:6px;color:#d9edff}
+.wind-chart-title span{color:#a7c6dd}
+.wind-summary-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.wind-summary-cards>div{background:#103455;border:1px solid #335978;border-radius:11px;padding:12px 8px;display:flex;flex-direction:column;gap:6px}
+.wind-summary-cards small{color:#b4cce0;font-size:10px}
+.wind-summary-cards strong{color:#f2f8ff;font-size:clamp(13px,3.5vw,18px)}
+.enhanced-graph .graph-legend{display:flex;flex-wrap:wrap;gap:9px;font-size:11px}
+.enhanced-graph .limit-legend{color:#ff8991}
+.model-section{border:1px solid #345a7a;border-radius:13px;padding:12px 10px;background:#082440;display:flex;flex-direction:column;gap:10px}
+.model-section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.model-section-heading>div{display:flex;flex-direction:column;gap:4px}
+.model-section-heading strong{font-size:13px}
+.model-section-heading small{font-size:11px;color:#b2d0e4}
+.model-section-heading button{font-size:12px!important;padding:9px 10px!important}
+.model-comparison{display:block!important;min-height:0!important;max-height:none!important;overflow:visible!important}
+.model-comparison .model-summary{font-size:12px;line-height:1.5}
+.model-comparison .model-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 12px}
+.model-comparison table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12px}
+.model-comparison th,.model-comparison td{padding:9px 8px;border:1px solid #355b7b;white-space:nowrap;text-align:center}
+.model-comparison th:first-child{position:sticky;left:0;background:#123553;z-index:1;text-align:left}
+.model-comparison h4{font-size:12px;margin:8px 0}
+.model-loading{padding:14px 5px;color:#b8d6e9}
+@media(max-width:700px){#detailDialog .forecast-evolution .enhanced-graph svg{min-height:120px}.wind-summary-cards>div{padding:10px 6px}.wind-summary-cards small{font-size:9px}}
