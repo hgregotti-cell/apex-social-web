@@ -303,68 +303,109 @@ const ApexWindFlow=L.Layer.extend({
  _tick(now){this._raf=requestAnimationFrame(this._tick);if(!this._ctx||document.hidden||!this._w||!this._h)return;if(now-this._last<33)return;const dt=Math.min((now-this._last||33)/33,2);this._last=now;const ctx=this._ctx,w=this._w,h=this._h;ctx.clearRect(0,0,w,h);if(!Number.isFinite(this._dir))return;const rad=(this._dir+180)*Math.PI/180;const vx=Math.sin(rad),vy=-Math.cos(rad);const count=Math.min(145,Math.max(30,Math.floor(w*h/5200)));while(this._particles.length<count)this._particles.push({x:Math.random()*w,y:Math.random()*h,life:Math.random()*130,age:Math.random()*90,len:15+Math.random()*23,speed:.65+Math.random()*.75});const pace=Math.min(2.4,Math.max(.45,(this._speed||8)/18));ctx.lineWidth=2.15;ctx.lineCap='round';for(const p of this._particles){const travel=pace*p.speed*dt*1.5;p.x+=vx*travel;p.y+=vy*travel;p.age+=dt;p.life-=dt;const opacity=Math.min(1,p.age/20,p.life/25);if(p.x< -40||p.x>w+40||p.y< -40||p.y>h+40||p.life<=0){p.x=Math.random()*w;p.y=Math.random()*h;p.life=55+Math.random()*105;p.age=0;continue}const g=ctx.createLinearGradient(p.x-vx*p.len,p.y-vy*p.len,p.x,p.y);g.addColorStop(0,'rgba(92,205,245,0)');g.addColorStop(1,`rgba(132,224,255,${(.68*opacity).toFixed(3)})`);ctx.strokeStyle=g;ctx.beginPath();ctx.moveTo(p.x-vx*p.len,p.y-vy*p.len);ctx.lineTo(p.x,p.y);ctx.stroke()}}
 });
 function renderWindLayer(){if(!state.map)return;if(!state.windEnabled){if(state.windLayer){state.map.removeLayer(state.windLayer);state.windLayer=null}$('windInfo').textContent='';return}const h=state.centerWind,dir=Number.isFinite(h?.dir)?h.dir:null;if(dir===null){$('windInfo').textContent='Esperando datos de viento en el centro del mapa';return}if(!state.windLayer){state.windLayer=new ApexWindFlow();state.windLayer.addTo(state.map)}state.windLayer.setWind(dir,Number.isFinite(h.wind)?h.wind:0);$('windInfo').textContent=`Flujo animado · viento multimodelo a 10 m en el centro del mapa: ${fmt(h.wind)} km/h · desde ${windLabel(dir)} · representación uniforme orientativa, no viento real en cada punto.`}
-// V1.26: búsqueda progresiva, con alternativas independientes y resultados locales.
-// Photon: puntos de interés; Open-Meteo: localidades; Nominatim: sólo al pulsar Buscar.
-let placeRequest=0,placeTimer=null,placeAbort=null,placeItems=[],placeLastQuery='';
-const placeCache=new Map();let placeOverpassLast=0;
-function placeHide(){const el=$('placeResults');el.hidden=true;$('search').setAttribute('aria-expanded','false')}
+// V1.31: búsqueda mundial desacoplada de los filtros de despegues.
+// Photon para sugerencias, Open-Meteo para ciudades y Nominatim sólo por acción
+// explícita (política de uso de Nominatim). Sin Overpass masivo ni áreas fijas.
+let placeRequest=0,placeTimer=null,placeAbort=null,placeItems=[];
+const placeCache=new Map();
 const placeNorm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
-function placeCategory(p){const t=String(p.osm_value||p.type||'').toLowerCase();if(['dam','weir'].includes(t))return ['Represa','🏞️'];if(t.includes('national_park')||t.includes('protected_area'))return ['Parque nacional','🌲'];if(['lake','reservoir','water'].includes(t))return ['Lago / embalse','🌊'];if(['peak','mountain','volcano'].includes(t))return ['Cerro / montaña','⛰️'];if(['city','town','village','hamlet','municipality'].includes(t))return ['Ciudad / localidad','📍'];if(['aerodrome','airport'].includes(t))return ['Aeropuerto','✈️'];if(['street','residential','road','house'].includes(t))return ['Dirección','🛣️'];return ['Lugar','📌']}
+function placeHide(){const el=$('placeResults');el.hidden=true;$('search').setAttribute('aria-expanded','false')}
+function placeCategory(p){const t=String(p.osm_value||p.type||'').toLowerCase();if(['dam','weir'].includes(t))return ['Represa','🏞️'];if(t.includes('national_park')||t.includes('protected_area')||t.includes('nature_reserve'))return ['Parque / reserva','🌲'];if(['lake','reservoir','water','river','stream'].includes(t))return ['Lago / embalse / río','🌊'];if(['peak','mountain','volcano','ridge'].includes(t))return ['Cerro / montaña','⛰️'];if(['city','town','village','hamlet','municipality'].includes(t))return ['Ciudad / localidad','📍'];if(['aerodrome','airport'].includes(t))return ['Aeropuerto','✈️'];if(['street','residential','road','house'].includes(t))return ['Dirección','🛣️'];return ['Lugar','📌']}
 function placeName(p){return [p.name,p.city&&p.city!==p.name?p.city:null,p.state,p.country].filter(Boolean).join(', ')}
 function placeLocal(q){const needle=placeNorm(q);return needle?state.sites.filter(s=>placeNorm(s.name).includes(needle)).slice(0,7):[]}
 function placeDraw(q,places=[],status=''){const box=$('placeResults');if(!q.trim()){placeHide();return}placeItems=places;const siteHtml=placeLocal(q).map(s=>`<button type="button" class="place-option" data-place-site="${safe(s.id)}"><span>🪂</span><span><strong>${safe(s.name)}</strong><small>Despegue registrado · Ir al mapa</small></span></button>`).join('');const placeHtml=places.map((p,i)=>{const [kind,emoji]=placeCategory(p);return `<button type="button" class="place-option" data-place-index="${i}"><span>${emoji}</span><span><strong>${safe(p.name||'Lugar sin nombre')}</strong><small>${safe(kind)} · ${safe([p.city&&p.city!==p.name?p.city:null,p.state,p.country].filter(Boolean).join(', '))}</small></span></button>`}).join('');box.innerHTML=siteHtml+placeHtml+(status?`<div class="place-loading">${safe(status)}</div>`:'');box.hidden=false;$('search').setAttribute('aria-expanded','true')}
-function placeFly(lat,lon,zoom){if(!Number.isFinite(lat)||!Number.isFinite(lon))return;placeHide();if(state.view!=='map')document.querySelector('.nav[data-view="map"]')?.click();const map=state.map;if(!map)return;map.stop();map.flyTo([lat,lon],Math.max(11,Math.min(17,zoom)),{animate:true,duration:2.1,easeLinearity:0.22})}
-function placeZoom(p){const kind=String(p.osm_value||p.type||'').toLowerCase();if(['national_park','protected_area','forest'].includes(kind))return 11;if(['lake','reservoir','water'].includes(kind))return 12;if(['city','town','municipality'].includes(kind))return 14;if(['village','hamlet'].includes(kind))return 15;return 16}
-function placeDedup(items){const seen=new Set();return items.filter(p=>{if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||!p.name)return false;const key=placeNorm(p.name)+'|'+Math.round(p.lat*100)+'|'+Math.round(p.lon*100);if(seen.has(key))return false;seen.add(key);return true}).slice(0,12)}
-async function placeFetch(url,signal,ms=6500){const timeout=new AbortController();const timer=setTimeout(()=>timeout.abort(),ms);const abort=()=>timeout.abort();signal?.addEventListener('abort',abort,{once:true});try{const r=await fetch(url,{signal:timeout.signal,headers:{'Accept':'application/json'}});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(timer);signal?.removeEventListener('abort',abort)}}
-async function placePhoton(q,signal){const url=new URL('https://photon.komoot.io/api/');url.searchParams.set('q',q);url.searchParams.set('limit','10');url.searchParams.set('lang','es');const c=state.map?.getCenter();if(c){url.searchParams.set('lat',String(c.lat));url.searchParams.set('lon',String(c.lng))}const data=await placeFetch(url,signal);return (data.features||[]).filter(f=>f.geometry?.coordinates?.length>=2).map(f=>({...f.properties,lon:Number(f.geometry.coordinates[0]),lat:Number(f.geometry.coordinates[1])}))}
-async function placeCities(q,signal){const url=new URL('https://geocoding-api.open-meteo.com/v1/search');url.searchParams.set('name',q);url.searchParams.set('count','10');url.searchParams.set('language','es');url.searchParams.set('format','json');const data=await placeFetch(url,signal);return (data.results||[]).map(p=>({name:p.name,city:p.name,state:p.admin1,country:p.country,osm_value:p.feature_code?.startsWith('PPL')?'city':'place',lat:Number(p.latitude),lon:Number(p.longitude)}))}
-async function placeNominatim(q,signal){const url=new URL('https://nominatim.openstreetmap.org/search');url.searchParams.set('q',q);url.searchParams.set('format','jsonv2');url.searchParams.set('addressdetails','1');url.searchParams.set('limit','10');url.searchParams.set('accept-language','es');const data=await placeFetch(url,signal,9000);return (data||[]).map(p=>({name:p.name||p.display_name?.split(',')[0],city:p.address?.city||p.address?.town||p.address?.village,state:p.address?.state,country:p.address?.country,osm_value:p.type,lat:Number(p.lat),lon:Number(p.lon)}))}
-// OpenStreetMap Overpass complementa la búsqueda de ciudades con elementos
-// naturales y de infraestructura que no suelen figurar en los geocodificadores.
-// Limitado a Patagonia andina (área inicial del proyecto) y con caché local.
+function placeFly(lat,lon,zoom){if(!Number.isFinite(lat)||!Number.isFinite(lon))return;placeHide();if(state.view!=='map')document.querySelector('.nav[data-view="map"]')?.click();const map=state.map;if(!map)return;map.stop();map.flyTo([lat,lon],Math.max(10,Math.min(17,zoom)),{animate:true,duration:2.1,easeLinearity:0.22})}
+function placeZoom(p){const kind=String(p.osm_value||p.type||'').toLowerCase();if(['national_park','protected_area','nature_reserve','forest'].includes(kind))return 11;if(['lake','reservoir','water'].includes(kind))return 12;if(['city','town','municipality'].includes(kind))return 14;if(['village','hamlet'].includes(kind))return 15;return 16}
+function placeDedup(items){const seen=new Set();return items.filter(p=>{if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||!p.name)return false;const key=placeNorm(p.name)+'|'+Math.round(p.lat*100)+'|'+Math.round(p.lon*100);if(seen.has(key))return false;seen.add(key);return true}).slice(0,15)}
+async function placeFetch(url,signal,ms=7500){const timeout=new AbortController();const timer=setTimeout(()=>timeout.abort(),ms);const abort=()=>timeout.abort();signal?.addEventListener('abort',abort,{once:true});try{const r=await fetch(url,{signal:timeout.signal,headers:{'Accept':'application/json'}});if(!r.ok)throw Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(timer);signal?.removeEventListener('abort',abort)}}
 function placeVariants(q){
- const n=placeNorm(q);
- const out=[q];
- if(n.includes('alerces'))out.push('Parque Nacional Los Alerces');
- if(n.includes('futaleufu'))out.push('Represa Futaleufú','Embalse Amutui Quimey');
- if(n.includes('amutui'))out.push('Embalse Amutui Quimey');
- return [...new Set(out)];
+ const clean=q.trim().replace(/\s+/g,' ');
+ const bare=clean.replace(/^(represa|dique|embalse|lago|laguna|parque nacional|parque|cerro|aeropuerto|rio|río)\s+(de(l)?\s+)?/i,'').trim();
+ const variants=[clean];
+ if(bare.length>=4&&placeNorm(bare)!==placeNorm(clean))variants.push(bare);
+ const n=placeNorm(clean);
+ if(n.includes('futaleufu'))variants.push('Amutui Quimey');
+ if(n.includes('alerces'))variants.push('Parque Nacional Los Alerces');
+ return [...new Set(variants)].slice(0,3);
 }
-async function placePhotonExpanded(q,signal){
- const variants=placeVariants(q).slice(0,3);
- const results=await Promise.allSettled(variants.map(v=>placePhoton(v,signal)));
- const good=results.filter(x=>x.status==='fulfilled').flatMap(x=>x.value);
- if(!good.length&&results.every(x=>x.status==='rejected'))throw Error('Photon no disponible');
- return good;
+async function placePhoton(q,signal){
+ const url=new URL('https://photon.komoot.io/api/');
+ url.searchParams.set('q',q);url.searchParams.set('limit','12');url.searchParams.set('lang','es');
+ // Preferir el entorno visible sin limitar los resultados a ese país o región.
+ const c=state.map?.getCenter();if(c){url.searchParams.set('lat',String(c.lat));url.searchParams.set('lon',String(c.lng))}
+ const data=await placeFetch(url,signal);
+ return (data.features||[]).filter(f=>f.geometry?.coordinates?.length>=2).map(f=>({...f.properties,lon:Number(f.geometry.coordinates[0]),lat:Number(f.geometry.coordinates[1])}));
 }
-async function placeOverpass(q,signal){
- const n=placeNorm(q);
- if(n.length<5)return [];
- const key='osm:'+n;
- if(placeCache.has(key))return placeCache.get(key);
- // Evitar saturar Overpass con solicitudes de cada pulsación.
- if(Date.now()-placeOverpassLast<3500)return [];
- placeOverpassLast=Date.now();
- const pattern=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\\s+/g,' ').trim();
- const aliases=placeVariants(q).slice(1);
- const names=[pattern,...aliases.map(v=>v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))];
- const regex=names.join('|');
- const query=`[out:json][timeout:12];(nwr["name"~"${regex}",i]["natural"~"water|peak|wood|glacier"](-46,-74,-39,-69);nwr["name"~"${regex}",i]["waterway"~"dam|river"](-46,-74,-39,-69);nwr["name"~"${regex}",i]["water"~"lake|reservoir"](-46,-74,-39,-69);nwr["name"~"${regex}",i]["boundary"="protected_area"](-46,-74,-39,-69);nwr["name"~"${regex}",i]["leisure"="nature_reserve"](-46,-74,-39,-69);nwr["name"~"${regex}",i]["man_made"="dam"](-46,-74,-39,-69););out center 18;`;
- const url=new URL('https://overpass.kumi.systems/api/interpreter');url.searchParams.set('data',query);
- const data=await placeFetch(url,signal,17000);
- const rows=(data.elements||[]).map(e=>({
-  name:e.tags?.name||'',city:null,state:'Patagonia',country:'Argentina',
-  osm_value:e.tags?.man_made||e.tags?.water||e.tags?.natural||e.tags?.waterway||e.tags?.boundary||e.tags?.leisure||'place',
-  lat:Number(e.lat??e.center?.lat),lon:Number(e.lon??e.center?.lon)
- })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lon)&&x.name);
- placeCache.set(key,rows);return rows;
+async function placeCities(q,signal){const url=new URL('https://geocoding-api.open-meteo.com/v1/search');url.searchParams.set('name',q);url.searchParams.set('count','10');url.searchParams.set('language','es');url.searchParams.set('format','json');const data=await placeFetch(url,signal);return (data.results||[]).map(p=>({name:p.name,city:p.name,state:p.admin1,country:p.country,osm_value:p.feature_code?.startsWith('PPL')?'city':'place',lat:Number(p.latitude),lon:Number(p.longitude)}))}
+async function placeNominatim(q,signal){
+ const url=new URL('https://nominatim.openstreetmap.org/search');
+ url.searchParams.set('q',q);url.searchParams.set('format','jsonv2');url.searchParams.set('addressdetails','1');url.searchParams.set('limit','12');url.searchParams.set('accept-language','es');
+ const data=await placeFetch(url,signal,11000);
+ return (data||[]).map(p=>({name:p.name||p.display_name?.split(',')[0],city:p.address?.city||p.address?.town||p.address?.village,state:p.address?.state,country:p.address?.country,osm_value:p.type,lat:Number(p.lat),lon:Number(p.lon)}));
 }
-async function placeLookup(explicit=false){const q=$('search').value.trim();if(q.length<3){placeDraw(q,[],'Escribí al menos 3 letras para buscar lugares.');return}const id=++placeRequest;placeAbort?.abort();placeAbort=new AbortController();const signal=placeAbort.signal;placeLastQuery=q;placeDraw(q,[],'Buscando lugares…');let found=[];let succeeded=0;const show=()=>{if(id!==placeRequest||q!==$('search').value.trim())return;found=placeDedup(found);placeDraw(q,found,found.length?'':succeeded?'No encontramos coincidencias. Probá con un nombre más específico.':'Los servicios geográficos no responden. Probá nuevamente más tarde.')};
- // Consultar servicios en paralelo; el fallo de uno no cancela el otro.
- const tasks=[placePhotonExpanded(q,signal),placeCities(q,signal)];if(explicit)tasks.push(placeNominatim(q,signal));if(explicit||/alerces|futaleuf[uú]|represa|embalse|parque|lago|laguna|aeropuerto/i.test(q))tasks.push(placeOverpass(q,signal))
- await Promise.all(tasks.map(async task=>{try{const rows=await task;succeeded++;if(id!==placeRequest||signal.aborted)return;found=placeDedup([...found,...rows]);placeDraw(q,found,found.length?'':'Buscando más coincidencias…')}catch(e){if(e.name!=='AbortError')console.warn('Proveedor geográfico no disponible:',e.message)}}));show()}
-function initPlaceSearch(){const inp=$('search');inp.placeholder='Ciudad, parque, represa, lago o despegue…';inp.addEventListener('input',()=>{placeRequest++;placeAbort?.abort();clearTimeout(placeTimer);const q=inp.value.trim();placeDraw(q);if(q.length>=3)placeTimer=setTimeout(()=>placeLookup(false),650)});inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const first=$('placeResults').querySelector('.place-option');if(first&&!$('placeResults').hidden)first.click();else placeLookup(true)}if(e.key==='Escape')placeHide()});$('placeSearchBtn').addEventListener('click',()=>placeLookup(true));$('placeResults').addEventListener('click',e=>{const btn=e.target.closest('button');if(!btn)return;if(btn.dataset.placeSite){const s=state.sites.find(x=>x.id===btn.dataset.placeSite);if(s){inp.value=s.name;placeFly(Number(s.lat),Number(s.lon),16);state.focusSiteId=s.id;updateMapCompass()}return}if(btn.dataset.placeIndex!==undefined){const p=placeItems[Number(btn.dataset.placeIndex)];if(p){inp.value=placeName(p);placeFly(p.lat,p.lon,placeZoom(p))}}});document.addEventListener('click',e=>{if(!e.target.closest('.apex-place-search'))placeHide()})}
+function placeRank(p,q){
+ const name=placeNorm(p.name),term=placeNorm(q);
+ const alias=placeVariants(q).map(placeNorm);
+ const exact=alias.some(x=>x===name);
+ const contains=alias.some(x=>name.includes(x));
+ const type=String(p.osm_value||'').toLowerCase();
+ const priority=['dam','reservoir','lake','national_park','protected_area','city','town','village','aerodrome'].includes(type)?2:0;
+ return (exact?100:contains?50:0)+priority;
+}
+async function placeLookup(explicit=false){
+ const q=$('search').value.trim();
+ if(q.length<3){placeDraw(q,[],'Escribí al menos 3 letras.');return}
+ const id=++placeRequest;
+ placeAbort?.abort();placeAbort=new AbortController();
+ const signal=placeAbort.signal;
+ const cacheKey=(explicit?'full:':'auto:')+placeNorm(q);
+ if(placeCache.has(cacheKey)){placeDraw(q,placeCache.get(cacheKey));return}
+ placeDraw(q,[],'Buscando lugares…');
+ let found=[],success=0;
+ const show=(loading=false)=>{
+  if(id!==placeRequest||signal.aborted||q!==$('search').value.trim())return;
+  const ranked=placeDedup(found).sort((a,b)=>placeRank(b,q)-placeRank(a,q));
+  placeDraw(q,ranked,loading?'Buscando más coincidencias…':ranked.length?'':success?'Sin coincidencias. Probá con otro nombre o tocá Buscar.':'Los servicios geográficos no respondieron. Intentá de nuevo.');
+  if(!loading)placeCache.set(cacheKey,ranked);
+ };
+ const variants=placeVariants(q);
+ // Las sugerencias sólo consultan Photon y el geocodificador de ciudades.
+ // Nominatim se consulta únicamente al tocar Buscar, nunca por cada tecla.
+ const tasks=[...variants.slice(0,explicit?3:2).map(v=>placePhoton(v,signal)),placeCities(q,signal)];
+ if(explicit)tasks.push(placeNominatim(q,signal));
+ await Promise.all(tasks.map(async task=>{
+  try{const rows=await task;success++;if(id!==placeRequest||signal.aborted)return;found.push(...rows);show(true)}
+  catch(e){if(e.name!=='AbortError')console.warn('Búsqueda geográfica:',e.message)}
+ }));
+ show(false);
+}
+function initPlaceSearch(){
+ const inp=$('search');
+ inp.placeholder='Ciudad, lago, represa, parque o despegue…';
+ inp.addEventListener('input',()=>{
+  placeRequest++;placeAbort?.abort();clearTimeout(placeTimer);
+  const q=inp.value.trim();placeDraw(q);
+  if(q.length>=3)placeTimer=setTimeout(()=>placeLookup(false),450);
+ });
+ inp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();const first=$('placeResults').querySelector('.place-option');if(first&&!$('placeResults').hidden)first.click();else placeLookup(true)}
+  if(e.key==='Escape')placeHide();
+ });
+ $('placeSearchBtn').addEventListener('click',()=>placeLookup(true));
+ $('placeResults').addEventListener('click',e=>{
+  const btn=e.target.closest('button');if(!btn)return;
+  if(btn.dataset.placeSite){
+   const s=state.sites.find(x=>x.id===btn.dataset.placeSite);
+   if(s){inp.value=s.name;placeFly(Number(s.lat),Number(s.lon),16);state.focusSiteId=s.id;updateMapCompass()}
+   return;
+  }
+  if(btn.dataset.placeIndex!==undefined){
+   const p=placeItems[Number(btn.dataset.placeIndex)];
+   if(p){inp.value=placeName(p);placeFly(p.lat,p.lon,placeZoom(p))}
+  }
+ });
+ document.addEventListener('click',e=>{if(!e.target.closest('.apex-place-search'))placeHide()});
+}
 
 function init(){document.body.classList.add('map-mode');initMap();loadSites();scheduleCenterWind();initPlaceSearch();$('filter').addEventListener('change',render);$('refreshBtn').addEventListener('click',()=>loadWeather());$('timeSlider').addEventListener('input',e=>{state.selectedTime=Number(e.target.value);updateTimeLabel();render();scheduleCenterWind();});$('timeNow').addEventListener('click',()=>{$('timeSlider').value='0';state.selectedTime=0;updateTimeLabel();render();scheduleCenterWind()});$('windToggle').classList.add('active');$('windToggle').setAttribute('aria-pressed','true');$('windToggle').addEventListener('click',()=>{state.windEnabled=!state.windEnabled;$('windToggle').classList.toggle('active',state.windEnabled);$('windToggle').setAttribute('aria-pressed',String(state.windEnabled));renderWindLayer()});updateTimeLabel();$('layerBtn').addEventListener('click',()=>{state.map.removeLayer(state.satellite?state.sat:state.osm);state.satellite=!state.satellite;(state.satellite?state.sat:state.osm).addTo(state.map);$('layerBtn').textContent=state.satellite?'Vista: Satélite':'Vista: Calles';$('layerBtn').title=state.satellite?'Estás viendo Satélite. Clic para cambiar a Calles':'Estás viendo Calles. Clic para cambiar a Satélite'});document.querySelectorAll('.nav[data-view]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav[data-view]').forEach(b=>b.classList.toggle('active',b===btn));state.view=btn.dataset.view;document.body.classList.toggle('map-mode',state.view==='map');$('pageTitle').textContent=state.view==='favorites'?'Mis favoritos':state.view==='forecast'?'Pronóstico de vuelo':'Mapa de despegues';$('pageSub').textContent=state.view==='forecast'?'Seleccioná un despegue para consultar las próximas 24 horas':'Explorá lugares, orientaciones y condiciones previstas';render();requestAnimationFrame(()=>state.map?.invalidateSize({pan:false}))}));state.map.on('click',e=>{if(state.pickLocation){setDraftLocation(e.latlng.lat,e.latlng.lng)}});$('pickMapBtn').addEventListener('click',startPick);$('pickDoneBtn').addEventListener('click',finishPick);$('siteLat').addEventListener('change',updateDraftMarker);$('siteLon').addEventListener('change',updateDraftMarker);['siteMaxGust','siteMaxWind','siteTolerance','siteName'].forEach(id=>$(id).addEventListener('input',updateEditorPreview));$('editDialog').addEventListener('close',()=>{if(!state.pickLocation)clearDraft();state.map?.closePopup()});$('adminBtn').addEventListener('click',()=>requestAdmin('add'));$('addBtn').addEventListener('click',()=>openEdit(null));$('manageAdd').addEventListener('click',()=>{$('manageDialog').close();openEdit(null)});$('manageSearch').addEventListener('input',renderManage);$('manageList').addEventListener('click',async e=>{const b=e.target.closest('[data-manage]');if(!b)return;const id=b.dataset.id;if(b.dataset.manage==='edit'){$('manageDialog').close();openEdit(id)}else await deleteSite(id)});$('loginBtn').addEventListener('click',adminLogin);$('editForm').addEventListener('submit',saveEdit);$('sectors').addEventListener('click',e=>{const btn=e.target.closest('[data-deg]');if(!btn)return;const deg=Number(btn.dataset.deg);state.selectedDirections=state.selectedDirections.includes(deg)?state.selectedDirections.filter(x=>x!==deg):[...state.selectedDirections,deg];renderSectors();updateEditorPreview()});document.addEventListener('click',e=>{const close=e.target.closest('[data-close]');if(close){if(close.dataset.close==='adminDialog')pendingAdminAction=null;$(close.dataset.close).close();return}const tabBtn=e.target.closest('[data-forecast-tab]');if(tabBtn){state.forecastTab=tabBtn.dataset.forecastTab;applyForecastTab();if(state.forecastTab==='evolution'&&state.focusSiteId&&state.forecastDay)loadModelComparison(state.focusSiteId,state.forecastDay);return}const btn=e.target.closest('[data-action]');if(!btn)return;const {action,id}=btn.dataset;if(action==='favorite'){state.favorites.has(id)?state.favorites.delete(id):state.favorites.add(id);localStorage.setItem('apex_favs',JSON.stringify([...state.favorites]));renderCards()}if(action==='detail')showDetail(id);if(action==='quick')showQuickSite(id);if(action==='models')loadModelComparison(id,btn.dataset.day,true);if(action==='edit')requestAdmin('edit',id);if(action==='delete')deleteSite(id)});}
 init();
