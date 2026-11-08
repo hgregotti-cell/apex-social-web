@@ -437,3 +437,12 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 
 /* V1.25: resultados de lugares y despegues */
 .place-results .place-option{min-height:53px}.place-results .place-loading{padding:10px 12px;color:#b3cde0;font-size:12px}
+
+/* V1.30: manga realista naranja y blanca, visible desde el primer toque */
+.apex-windsock{position:relative;width:44px;height:56px;font-size:0;filter:drop-shadow(0 3px 3px rgba(0,0,0,.75));cursor:grab}
+.apex-windsock::before,.apex-windsock::after{content:none!important}
+.apex-windsock .windsock-pole{position:absolute;left:11px;top:5px;width:3px;height:44px;border-radius:2px;background:linear-gradient(90deg,#a5b4c8,#fff,#64748b);box-shadow:1px 0 1px #00172c}
+.apex-windsock .windsock-fabric{position:absolute;left:13px;top:5px;width:30px;height:19px;transform-origin:0 50%;transform:rotate(7deg);background:repeating-linear-gradient(90deg,#f97316 0px,#f97316 6px,#fff 6px,#fff 12px);clip-path:polygon(0 0,100% 22%,100% 78%,0 100%);border-radius:1px;box-shadow:0 0 0 1px #fff}
+.apex-windsock .windsock-target{position:absolute;left:5px;top:43px;width:16px;height:9px;border-radius:50%;background:radial-gradient(ellipse,#ffb347 0 22%,#ff7900 25% 48%,transparent 51%);border:1px solid #fff9}
+.picking-location .apex-windsock .windsock-fabric{animation:apexSockFlutter 2.4s ease-in-out infinite}
+@keyframes apexSockFlutter{0%,100%{transform:rotate(6deg) skewY(0deg)}50%{transform:rotate(12deg) skewY(4deg)}}
