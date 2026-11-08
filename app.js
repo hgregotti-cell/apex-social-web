@@ -1,4 +1,4 @@
-/* Apex Social Web V1.23 · motor multimodelo unificado */
+/* Apex Social Web V1.28 · motor FIX16 conservador */
 'use strict';
 const $=id=>document.getElementById(id);
 const sectors=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
@@ -8,15 +8,38 @@ const degDiff=(a,b)=>Math.abs(((a-b+540)%360)-180);
 const windLabel=d=>d==null?'—':sectors[Math.round(((d%360)+360)%360/22.5)%16];
 const fmt=(n,d=0)=>Number.isFinite(n)?n.toFixed(d):'—';
 function toast(s){$('toast').textContent=s;$('toast').style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').style.display='none',4500)}
-function assess(site,h){if(!h||!Number.isFinite(h.wind)||!Number.isFinite(h.gust)||!Number.isFinite(h.dir))return {kind:'unknown',label:'SIN DATOS',reason:'Pronóstico incompleto: no se puede recomendar volar',score:0};
- const problems=[];if(h.gust>=Number(site.maxGust??35))problems.push(`Ráfagas ${fmt(h.gust)} km/h (límite ${site.maxGust??35})`);if(h.wind>=Number(site.maxWind??30))problems.push(`Viento ${fmt(h.wind)} km/h (límite ${site.maxWind??30})`);if(h.rain>=0.3)problems.push('Precipitación prevista');
- if(problems.length)return {kind:'bad',label:'NO RECOMENDADO',reason:problems.join(' · '),score:Math.min(20,Math.max(0,50-h.gust))};
- if(!site.windFromDirections?.length)return {kind:'unknown',label:'ORIENTACIÓN PENDIENTE',reason:'Configurá una orientación antes de evaluar',score:0};
- const delta=Math.min(...site.windFromDirections.map(x=>degDiff(x,h.dir)));
- if(delta>Number(site.tolerance??30))return {kind:'bad',label:'DIRECCIÓN INCOMPATIBLE',reason:`Viento ${windLabel(h.dir)} fuera de los sectores del despegue`,score:15};
- const warnings=[];if(h.gust>=27)warnings.push('Ráfagas próximas al límite');if(h.wind>=22)warnings.push('Viento sostenido elevado');if(h.rain>0)warnings.push('Posible precipitación');if(h.cloud>=95)warnings.push('Nubosidad muy alta');
- if(warnings.length)return {kind:'warn',label:'PRECAUCIÓN',reason:warnings.join(' · '),score:Math.max(25,65-(h.gust-20)*2)};
- return {kind:'good',label:'FAVORABLE EN MODELO',reason:`Orientación compatible · ${windLabel(h.dir)} (${fmt(h.dir)}°). Verificar condiciones reales.`,score:Math.round(90-delta*.7)};
+// Motor de evaluación adaptado de RC 0.19.0 iOS COMPASS FIX16.
+// Se conservan los límites configurables por despegue y el contrato kind/label/reason/score.
+function assess(site,h){
+ if(!h||!Number.isFinite(h.wind)||!Number.isFinite(h.gust))return {kind:'unknown',label:'SIN DATOS',reason:'Sin viento o ráfagas suficientes para evaluar',score:0};
+ const wind=h.windMax??h.wind,gust=h.gustMax??h.gust,rain=h.rain,cape=h.cape,high=h.wind850,low=h.cloudLow;
+ let score=100,hard=false;const reasons=[];
+ const windLimit=Number.isFinite(Number(site.maxWind))?Number(site.maxWind):30;
+ const gustLimit=Number.isFinite(Number(site.maxGust))?Number(site.maxGust):35;
+ if(wind>=windLimit){hard=true;score=Math.min(score,20);reasons.push('Viento máximo sobre el límite');}
+ if(gust>=gustLimit){hard=true;score-=80;reasons.push('Ráfaga máxima sobre el límite');}
+ else if(gust>=gustLimit-5)score-=38;
+ else if(gust>=gustLimit-10)score-=18;
+ if(Number.isFinite(rain)){if(rain>=.8){hard=true;score-=55;reasons.push('Precipitación elevada');}else if(rain>=.3)score-=40;else if(rain>=.1)score-=20;}
+ if(Number.isFinite(cape)){if(cape>=600&&(rain??0)>=.1){hard=true;score-=35;reasons.push('Inestabilidad y lluvia');}else if(cape>=350)score-=15;}
+ if(Number.isFinite(high)){if(high>=50)score-=25;else if(high>=40)score-=12;}
+ if(Number.isFinite(low)){if(low>=85)score-=18;else if(low>=65)score-=8;}
+ const confidence=Number.isFinite(h.confidence)?h.confidence:0;
+ if(confidence<50)score-=20;else if(confidence<75)score-=9;
+ const orientations=site.windFromDirections||[];
+ if(!orientations.length)return {kind:'unknown',label:'CONFIGURAR ORIENTACIÓN',reason:'Falta configurar orientaciones',score:Math.min(45,Math.max(0,score))};
+ if(!Number.isFinite(h.dir)){score=Math.min(score,65);reasons.push('Dirección no disponible');}
+ else{
+  const delta=Math.min(...orientations.map(x=>degDiff(x,h.dir)));
+  const tolerance=Number.isFinite(Number(site.tolerance))?Number(site.tolerance):30;
+  if(delta>tolerance){hard=true;score=Math.min(score,35);reasons.push('Dirección incompatible');}
+  else if(delta>15)score-=18*Math.min(1,(delta-15)/Math.max(1,tolerance-15));
+ }
+ score=Math.round(Math.max(0,Math.min(100,score)));
+ const label=hard||score<50?'NO RECOMENDADO':score<70?'ATENCIÓN':score<84?'FAVORABLE':'MUY FAVORABLE';
+ const kind=hard||score<50?'bad':score<70?'warn':'good';
+ const reason=[...reasons,`Viento ${fmt(h.windMin??wind)}–${fmt(wind)} km/h · ráfagas ${fmt(h.gustMin??gust)}–${fmt(gust)} km/h`,`Modelos ${h.models??0}/4 · índice de concordancia ${fmt(confidence)} /100`].join(' · ');
+ return {kind,label,reason,score};
 }
 function hourFor(site){const hours=state.weather.get(site.id)||[];const target=Date.now()+state.selectedTime*3600000;return hours.find(h=>h.ts>=target-45*60*1000)||hours[0]||null}
 async function loadSites(){
@@ -49,7 +72,28 @@ const APEX_FIELDS=['wind','gust','dir','rain','cloud','cloudLow','temp','feels',
 const APEX_ANGLES=new Set(['dir','direction850']);
 state.modelHourly=new Map();state.centerCache=new Map();
 function circularMean(degrees){const values=degrees.filter(Number.isFinite);if(!values.length)return null;const sx=values.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0),sy=values.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);if(Math.hypot(sx,sy)<1e-7)return null;return (Math.atan2(sx,sy)*180/Math.PI+360)%360}
-function mergeModels(results){const valid=results.filter(r=>Array.isArray(r.rows)&&r.rows.length);const timestamps=new Set(valid.flatMap(r=>r.rows.map(h=>h.ts)));return [...timestamps].sort((a,b)=>a-b).map(ts=>{const available=valid.map(r=>r.rows.find(h=>h.ts===ts)).filter(Boolean);const row={ts,local:available[0]?.local||new Date(ts).toISOString().slice(0,16),models:available.length};for(const field of APEX_FIELDS){const values=available.map(h=>h[field]).filter(Number.isFinite);row[field]=values.length?(APEX_ANGLES.has(field)?circularMean(values):values.reduce((a,b)=>a+b,0)/values.length):null}return row})}
+function mergeModels(results){
+ const valid=results.filter(r=>Array.isArray(r.rows)&&r.rows.length);
+ // Coincidencia por hora local, como FIX16: evita desfases por zona horaria entre proveedores.
+ const byTime=new Map();for(const model of valid)for(const h of model.rows){const key=h.local;if(!byTime.has(key))byTime.set(key,[]);byTime.get(key).push(h);}
+ const min=arr=>arr.length?Math.min(...arr):null,max=arr=>arr.length?Math.max(...arr):null;
+ const vals=(arr,key)=>arr.map(h=>h[key]).filter(Number.isFinite);
+ return [...byTime.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([local,available])=>{
+  const row={ts:available[0].ts,local,models:available.length};
+  for(const field of APEX_FIELDS){const v=vals(available,field);row[field]=v.length?(APEX_ANGLES.has(field)?circularMean(v):v.reduce((a,b)=>a+b,0)/v.length):null;}
+  // Agregación original: extremos para viento, ráfagas, temperatura; máximos para riesgos.
+  row.windMin=min(vals(available,'wind'));row.windMax=max(vals(available,'wind'));
+  row.gustMin=min(vals(available,'gust'));row.gustMax=max(vals(available,'gust'));
+  row.tempMin=min(vals(available,'temp'));row.tempMax=max(vals(available,'temp'));
+  row.wind=row.windMax;row.gust=row.gustMax;row.temp=row.tempMax;
+  row.rain=max(vals(available,'rain'));row.cape=max(vals(available,'cape'));row.wind850=max(vals(available,'wind850'));
+  const w=vals(available,'wind'),g=vals(available,'gust');let confidence=100-(4-available.length)*18;
+  if(w.length){const spread=max(w)-min(w);confidence-=spread>12?20:spread>7?10:0;}
+  if(g.length){const spread=max(g)-min(g);confidence-=spread>15?20:spread>9?10:0;}
+  row.confidence=Math.max(0,Math.min(100,Math.round(confidence)));
+  return row;
+ });
+}
 async function fetchModelForecast(lat,lon,days=5,fields=APEX_HOURLY){return Promise.all(APEX_MODELS.map(async ([name,model])=>{try{const url=new URL('https://api.open-meteo.com/v1/forecast');Object.entries({latitude:lat,longitude:lon,models:model,hourly:fields,wind_speed_unit:'kmh',timezone:'auto',forecast_days:days}).forEach(([k,v])=>url.searchParams.set(k,v));const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),22000);let response;try{response=await fetch(url,{signal:controller.signal})}finally{clearTimeout(timeout)}if(!response.ok)throw Error('HTTP '+response.status);const json=await response.json();if(json.error)throw Error(json.reason||'Modelo no disponible');const rows=weatherFromJson(json);if(!rows.length)throw Error('Sin horas disponibles');return {name,model,rows}}catch(e){return {name,model,error:e.name==='AbortError'?'Tiempo agotado':String(e.message||e)}}}))}
 async function loadWeather(){const sites=[...state.sites];$('updated').textContent='Combinando cuatro modelos…';let done=0;const queue=[...sites];async function worker(){while(queue.length){const site=queue.shift();const results=await fetchModelForecast(site.lat,site.lon);const merged=mergeModels(results);if(merged.length){state.weather.set(site.id,merged);state.modelHourly.set(site.id,results)}else{state.weather.delete(site.id);state.modelHourly.delete(site.id)}done++;$('updated').textContent=`${done}/${sites.length} · pronósticos combinados`;renderCards();renderMarkers();if(state.focusSiteId===site.id)updateMapCompass()}}await Promise.all(Array.from({length:Math.min(2,sites.length)},worker));$('updated').textContent=`Multimodelo · ${new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}`;updateMapCompass();scheduleCenterWind()}
 function visibleSites(forMap=false){let sites=state.sites.filter(s=>forMap||s.name.toLowerCase().includes($('search').value.toLowerCase()));if(state.view==='favorites')sites=sites.filter(s=>state.favorites.has(s.id));const f=$('filter').value;if(f==='good')sites=sites.filter(s=>assess(s,hourFor(s)).kind==='good');if(f==='bad')sites=sites.filter(s=>assess(s,hourFor(s)).kind==='bad');if(state.view==='favorites')sites.sort((a,b)=>assess(b,hourFor(b)).score-assess(a,hourFor(a)).score);return sites;}
@@ -118,19 +162,19 @@ function windCompass(site,h){const dir=h?.dir;const sectorsSvg=(site.windFromDir
  const rot=Number.isFinite(dir)?dir:0;return `<div class="wind-compass"><svg viewBox="0 0 220 220" role="img" aria-label="Brújula: norte fijo arriba; viento desde ${safe(windLabel(dir))}"><circle cx="110" cy="110" r="100" fill="#06172f" stroke="#355a7a" stroke-width="2"/><circle cx="110" cy="110" r="86" fill="none" stroke="#214362" stroke-dasharray="2 7"/>${sectorsSvg}<g fill="#a6c2db" font-size="14" font-weight="800" text-anchor="middle"><text x="110" y="23" fill="#ff7840">N</text><text x="197" y="115">E</text><text x="110" y="204">S</text><text x="23" y="115">O</text></g>${Number.isFinite(dir)?`<g transform="rotate(${rot} 110 110)"><path d="M110 29L98 68H106V151H114V68H122Z" fill="#ff7b31"/><path d="M110 191l-12-33h8v-34h8v34h8Z" fill="#4bb8ff"/><circle cx="110" cy="110" r="8" fill="#e7f4ff"/></g>`:''}<circle cx="110" cy="110" r="3" fill="#06172f"/></svg><div class="compass-caption"><strong>${Number.isFinite(dir)?`${windLabel(dir)} · ${fmt(dir)}°`:'Sin datos'}</strong><span>Viento DESDE el sector naranja</span><span>HACIA el sector azul</span><small>Verde: orientación admitida del despegue</small></div></div>`}
 function forecastMatrix(site,hours){const rows=[
  ['ESTADO',h=>`<span class="status ${assess(site,h).kind}">${safe(assess(site,h).label)}</span>`],
- ['TEMPERATURA',h=>`${fmt(h.temp,1)} °C`],['SENSACIÓN',h=>`${fmt(h.feels,1)} °C`],
- ['VIENTO 10 m',h=>`${fmt(h.wind)} km/h`],['RÁFAGA',h=>`${fmt(h.gust)} km/h`],
+ ['TEMPERATURA',h=>`${fmt(h.tempMin??h.temp,1)}–${fmt(h.tempMax??h.temp,1)} °C`],['SENSACIÓN',h=>`${fmt(h.feels,1)} °C`],
+ ['VIENTO 10 m',h=>`${fmt(h.windMin??h.wind)}–${fmt(h.windMax??h.wind)} km/h`],['RÁFAGA',h=>`${fmt(h.gustMin??h.gust)}–${fmt(h.gustMax??h.gust)} km/h`],
  ['DIRECCIÓN',h=>`${windLabel(h.dir)} · ${fmt(h.dir)}°`],
  ['LLUVIA',h=>`${fmt(h.rain,1)} mm`],['PROB. LLUVIA',h=>`${fmt(h.rainProb)} %`],
  ['NUBOSIDAD',h=>`${fmt(h.cloud)} %`],['NUBE BAJA',h=>`${fmt(h.cloudLow)} %`],
  ['VIENTO ~1500 m',h=>`${fmt(h.wind850)} km/h`],['DIR. ~1500 m',h=>`${windLabel(h.direction850)} · ${fmt(h.direction850)}°`],
  ['CAPE',h=>`${fmt(h.cape)} J/kg`],['HUMEDAD',h=>`${fmt(h.humidity)} %`],
- ['PRESIÓN',h=>`${fmt(h.pressure)} hPa`],['VISIBILIDAD',h=>h.visibility==null?'—':`${fmt(h.visibility/1000,1)} km`]
+ ['MODELOS',h=>`${h.models??0}/4`],['CONCORDANCIA',h=>`${fmt(h.confidence)} /100`],['PRESIÓN',h=>`${fmt(h.pressure)} hPa`],['VISIBILIDAD',h=>h.visibility==null?'—':`${fmt(h.visibility/1000,1)} km`]
  ];return `<div class="forecast-data"><div class="matrix-scroll" role="region" tabindex="0" aria-label="Tabla horaria completa; deslizá horizontalmente para consultar las 24 horas"><table class="apex-matrix"><thead><tr><th>VARIABLE / HORA</th>${hours.map(h=>`<th>${safe(h.local.slice(11,16))}</th>`).join('')}</tr></thead><tbody>${rows.map(([label,fn])=>`<tr><th>${label}</th>${hours.map(h=>`<td>${fn(h)}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`}
 function applyForecastTab(){const dialog=$('detailDialog');dialog.dataset.forecastTab=state.forecastTab;dialog.querySelectorAll('[data-forecast-tab]').forEach(b=>{const active=b.dataset.forecastTab===state.forecastTab;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active))});}
 
 function showDetail(id,day){if($('quickDialog')?.open)$('quickDialog').close();const s=state.sites.find(x=>x.id===id);if(!s)return;const all=state.weather.get(id)||[],h=hourFor(s),a=assess(s,h);const days=[...new Set(all.map(x=>x.local.slice(0,10)))].slice(0,5);const chosen=days.includes(day)?day:days[0];const hs=all.filter(x=>x.local.startsWith(chosen||'')).slice(0,24);const current=hs.find(x=>x.ts>=Date.now()-3600000)||hs[0]||h;
- $('detailContent').innerHTML=`<div class="eyebrow">APEX SOCIAL · METEOROLOGÍA DE DESPEGUE</div><h2>${safe(s.name)}</h2><div class="detail-meta"><span>⌖ ${fmt(s.lat,5)}, ${fmt(s.lon,5)}</span><span>Despegue: ${s.windFromDirections.map(windLabel).join(' · ')||'Sin configurar'}</span><span>Horizonte: 5 días</span></div><div class="day-selector">${days.map((d,i)=>`<button class="day-button ${d===chosen?'selected':''}" data-day="${safe(d)}" data-site="${safe(id)}">${i===0?'HOY · ':''}${safe(d.slice(8,10)+'/'+d.slice(5,7))}</button>`).join('')}</div><div class="forecast-tabs" role="tablist" aria-label="Secciones del pronóstico"><button type="button" role="tab" data-forecast-tab="hourly" class="forecast-tab">Pronóstico horario</button><button type="button" role="tab" data-forecast-tab="evolution" class="forecast-tab">Evolución del viento</button><button type="button" role="tab" data-forecast-tab="summary" class="forecast-tab">Condiciones actuales</button></div><div class="forecast-tab-panel forecast-summary"><div class="forecast-overview"><div class="forecast-intro"><div class="status ${a.kind}">${safe(a.label)}</div><p>${safe(a.reason)}</p><div class="overview-metrics"><div><small>VIENTO</small><strong>${fmt(current?.wind)} <small>km/h</small></strong></div><div><small>RÁFAGA</small><strong>${fmt(current?.gust)} <small>km/h</small></strong></div><div><small>TEMPERATURA</small><strong>${fmt(current?.temp,1)} °C</strong></div><div><small>NUBE BAJA</small><strong>${fmt(current?.cloudLow)} %</strong></div></div><p class="source-note">Pronóstico horario combinado de ECMWF IFS, ICON, GFS y GEM mediante Open-Meteo. Los valores mostrados son los mismos que evalúa el semáforo.</p></div></div></div><div class="forecast-tab-panel forecast-hourly"><div class="matrix-header"><strong>PRONÓSTICO HORARIO · 24 HORAS</strong><span>Deslizá horizontalmente para ver todas las horas</span></div>${hs.length?forecastMatrix(s,hs):'<div class="empty">Sin datos meteorológicos para este día.</div>'}</div><div class="forecast-tab-panel forecast-evolution">${hs.length?forecastInsights(s,hs):'<div class="empty">Sin datos meteorológicos para este día.</div>'}</div><p class="source-note">La brújula de viento y orientaciones está sobre el mapa. Las condiciones reales deben verificarse en el despegue.</p>`;
+ $('detailContent').innerHTML=`<div class="eyebrow">APEX SOCIAL · METEOROLOGÍA DE DESPEGUE</div><h2>${safe(s.name)}</h2><div class="detail-meta"><span>⌖ ${fmt(s.lat,5)}, ${fmt(s.lon,5)}</span><span>Despegue: ${s.windFromDirections.map(windLabel).join(' · ')||'Sin configurar'}</span><span>Horizonte: 5 días</span></div><div class="day-selector">${days.map((d,i)=>`<button class="day-button ${d===chosen?'selected':''}" data-day="${safe(d)}" data-site="${safe(id)}">${i===0?'HOY · ':''}${safe(d.slice(8,10)+'/'+d.slice(5,7))}</button>`).join('')}</div><div class="forecast-tabs" role="tablist" aria-label="Secciones del pronóstico"><button type="button" role="tab" data-forecast-tab="hourly" class="forecast-tab">Pronóstico horario</button><button type="button" role="tab" data-forecast-tab="evolution" class="forecast-tab">Evolución del viento</button><button type="button" role="tab" data-forecast-tab="summary" class="forecast-tab">Condiciones actuales</button></div><div class="forecast-tab-panel forecast-summary"><div class="forecast-overview"><div class="forecast-intro"><div class="status ${a.kind}">${safe(a.label)}</div><p>${safe(a.reason)}</p><div class="overview-metrics"><div><small>VIENTO</small><strong>${fmt(current?.wind)} <small>km/h</small></strong></div><div><small>RÁFAGA</small><strong>${fmt(current?.gust)} <small>km/h</small></strong></div><div><small>TEMPERATURA</small><strong>${fmt(current?.temp,1)} °C</strong></div><div><small>NUBE BAJA</small><strong>${fmt(current?.cloudLow)} %</strong></div></div><p class="source-note">Motor FIX16: máximos entre ECMWF IFS, ICON, GFS y GEM para viento, ráfagas, lluvia, CAPE y viento a 850 hPa; rangos mínimos y máximos y concordancia orientativa. No es una medición ni autorización de vuelo.</p></div></div></div><div class="forecast-tab-panel forecast-hourly"><div class="matrix-header"><strong>PRONÓSTICO HORARIO · 24 HORAS</strong><span>Deslizá horizontalmente para ver todas las horas</span></div>${hs.length?forecastMatrix(s,hs):'<div class="empty">Sin datos meteorológicos para este día.</div>'}</div><div class="forecast-tab-panel forecast-evolution">${hs.length?forecastInsights(s,hs):'<div class="empty">Sin datos meteorológicos para este día.</div>'}</div><p class="source-note">La brújula de viento y orientaciones está sobre el mapa. Las condiciones reales deben verificarse en el despegue.</p>`;
  state.forecastDay=chosen;applyForecastTab();if(state.forecastTab==='evolution'&&chosen)loadModelComparison(id,chosen); if(!$('detailDialog').open)$('detailDialog').showModal();const matrix=$('detailDialog').querySelector('.matrix-scroll');if(matrix)matrix.scrollLeft=0;state.focusSiteId=s.id;updateMapCompass();}
 const API_URL=(window.APEX_ADMIN_API||'').replace(/\/$/,'');
 function openAdmin(){ $('adminPassword').value='';$('adminMessage').textContent=API_URL?'':'Falta configurar la dirección del servidor de administración en config.js.';$('adminDialog').showModal() }
