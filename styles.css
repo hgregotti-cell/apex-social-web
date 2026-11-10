@@ -454,3 +454,19 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 .apex-status-explanation ul{margin:4px 0 0;padding-left:17px}.apex-status-explanation li+li{margin-top:5px}
 .apex-marker-menu .apex-status-explanation{max-width:270px;margin:5px 0;font-size:11px}.apex-marker-menu .apex-status-explanation strong{font-size:11px}
 #detailContent>.apex-status-explanation{flex:none!important;margin:7px 0 10px!important}
+
+/* V1.33: aterrizajes y respaldo de lugares */
+.apex-landing-marker{width:48px;height:56px;display:grid;place-items:center;filter:drop-shadow(0 2px 6px #000b);transition:transform .2s ease;position:relative}
+.apex-landing-marker:before{content:"";position:absolute;width:39px;height:39px;top:4px;left:4px;border:3px solid var(--landing-color,#16c98d);border-radius:50%;background:#071d35c9;box-shadow:0 0 12px var(--landing-color,#16c98d)}
+.apex-landing-marker.good{--landing-color:#13cb8e}.apex-landing-marker.warn{--landing-color:#ffc247}.apex-landing-marker.bad{--landing-color:#fa5a67}.apex-landing-marker.unknown{--landing-color:#95a8bd}
+.apex-landing-svg{position:relative;z-index:1;width:42px;height:49px;transform-origin:15px 45px;animation:landing-sock 2.8s ease-in-out infinite}
+@keyframes landing-sock{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@media(prefers-reduced-motion:reduce){.apex-landing-svg{animation:none}}
+.apex-kind{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#ff9d55;margin:5px 0}
+.landing-presets{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:12px;color:#a5c3db}.landing-presets .ghost{padding:7px 10px;font-size:12px}
+.backup-btn{font-size:12px!important;color:#a8cbe3!important}.backup-btn:hover{color:white!important}
+
+.apex-landing-rotor{position:relative;z-index:1;display:block;width:48px;height:56px;transform:rotate(var(--wind-to,0deg));transform-origin:15px 47px;transition:transform .6s ease}
+.apex-landing-svg{animation:landing-sock 2.8s ease-in-out infinite;transform-origin:15px 45px}
+
+.landing-presets[hidden]{display:none!important}
