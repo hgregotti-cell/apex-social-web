@@ -470,3 +470,28 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 .apex-landing-svg{animation:landing-sock 2.8s ease-in-out infinite;transform-origin:15px 45px}
 
 .landing-presets[hidden]{display:none!important}
+
+
+/* V1.34: manga de aterrizaje limpia, sin placa ni aro de fondo.
+   Sólo el pequeño pie del mástil expresa el semáforo. */
+.apex-landing-marker{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.65));
+}
+.apex-landing-marker::before,
+.apex-landing-marker::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.apex-landing-marker .apex-landing-svg{
+  overflow:visible;
+}
+.apex-landing-base{
+  fill:var(--landing-color,#13cb8e);
+  filter:drop-shadow(0 0 2px rgba(0,0,0,.65));
+}
