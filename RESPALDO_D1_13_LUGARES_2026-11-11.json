@@ -1,0 +1,283 @@
+{
+  "format": "apex-social-sites-backup",
+  "version": 1,
+  "source": "Cloudflare-D1",
+  "exportedAt": "2026-11-11T21:31:51.673Z",
+  "count": 13,
+  "sites": [
+    {
+      "type": "landing",
+      "id": "site_mwb83o8m",
+      "name": "ATERRI BASU",
+      "lat": -42.920347,
+      "lon": -71.28008,
+      "windFromDirections": [
+        0,
+        22.5,
+        45,
+        67.5,
+        90,
+        112.5,
+        135,
+        157.5,
+        180,
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5,
+        315,
+        337.5
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "type": "landing",
+      "id": "site_mwb82jcm",
+      "name": "ATERRI EL PERCY",
+      "lat": -42.98674,
+      "lon": -71.493053,
+      "windFromDirections": [
+        0,
+        22.5,
+        45,
+        67.5,
+        90,
+        112.5,
+        135,
+        157.5,
+        180,
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5,
+        315,
+        337.5
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "type": "takeoff",
+      "id": "alfombra",
+      "name": "Alfombra · Curbita",
+      "lat": -42.86206,
+      "lon": -71.28106,
+      "windFromDirections": [
+        247.5,
+        270,
+        292.5
+      ],
+      "maxWind": 25,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "id": "arriba_curbita_ok",
+      "name": "Arriba de la Curbita",
+      "lat": -42.85919,
+      "lon": -71.27371,
+      "windFromDirections": [
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5,
+        315
+      ],
+      "maxWind": 25,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "id": "basurero",
+      "name": "Basurero",
+      "lat": -42.92737,
+      "lon": -71.28461,
+      "windFromDirections": [
+        225,
+        247.5,
+        270
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "type": "landing",
+      "id": "site_mwar4lnd",
+      "name": "La zeta tercera entrada",
+      "lat": -42.888737,
+      "lon": -71.370749,
+      "windFromDirections": [
+        0,
+        22.5,
+        45,
+        67.5,
+        90,
+        112.5,
+        135,
+        157.5,
+        180,
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5,
+        315,
+        337.5
+      ],
+      "maxWind": 25,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "type": "takeoff",
+      "id": "site_mwb80q0c",
+      "name": "MIRADOR DEL PERCY",
+      "lat": -42.991257,
+      "lon": -71.497205,
+      "windFromDirections": [
+        22.5,
+        45,
+        67.5,
+        90
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "id": "mastil_trevelin",
+      "name": "Mástil Trevelin",
+      "lat": -43.11787,
+      "lon": -71.34923,
+      "windFromDirections": [
+        0,
+        90,
+        315
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "id": "site_mw6v9yq0",
+      "name": "Represa futaleufu",
+      "lat": -43.109203,
+      "lon": -71.65133,
+      "windFromDirections": [
+        0,
+        22.5,
+        45,
+        67.5,
+        90,
+        112.5,
+        135,
+        157.5,
+        180,
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5,
+        315,
+        337.5
+      ],
+      "maxWind": 25,
+      "maxGust": 30,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "id": "roberts",
+      "name": "Roberts",
+      "lat": -43.00323,
+      "lon": -71.41127,
+      "windFromDirections": [
+        45,
+        67.5,
+        90
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "id": "salto_pollo_wili",
+      "name": "Salto Pollo Wili",
+      "lat": -42.87973,
+      "lon": -71.2626,
+      "windFromDirections": [
+        202.5,
+        225,
+        247.5,
+        270
+      ],
+      "maxWind": 25,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "type": "landing",
+      "id": "site_mw9ruikt",
+      "name": "Tambo aterri",
+      "lat": -42.878485,
+      "lon": -71.286192,
+      "windFromDirections": [
+        0,
+        22.5,
+        45,
+        67.5,
+        90,
+        112.5,
+        135,
+        157.5,
+        180,
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5,
+        315,
+        337.5
+      ],
+      "maxWind": 30,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    },
+    {
+      "type": "takeoff",
+      "id": "site_mwcmhfiw",
+      "name": "Tradicional",
+      "lat": -42.8681,
+      "lon": -71.2482,
+      "windFromDirections": [
+        202.5,
+        225,
+        247.5,
+        270,
+        292.5
+      ],
+      "maxWind": 25,
+      "maxGust": 35,
+      "tolerance": 30,
+      "notes": ""
+    }
+  ]
+}

@@ -544,3 +544,6 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 .apex-paraglider.unknown .apex-original-paraglider{color:#a3b7cc!important}
 @keyframes apex-v136-paraglider-flight{0%,100%{transform:translate3d(0,1px,0) rotate(-4deg)}50%{transform:translate3d(2px,-4px,0) rotate(4deg)}}
 @media(prefers-reduced-motion:reduce){.apex-paraglider .apex-takeoff-body{animation:none!important}}
+
+/* V1.37: procedencia y cantidad de lugares visible en todos los dispositivos */
+.apex-source-indicator{font-size:11px;color:#8bb9d6;letter-spacing:.02em;padding:3px 10px 7px;opacity:.85;min-height:19px}.apex-source-indicator:not(:empty){overflow-wrap:anywhere}
