@@ -495,3 +495,52 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
   fill:var(--landing-color,#13cb8e);
   filter:drop-shadow(0 0 2px rgba(0,0,0,.65));
 }
+
+
+/* V1.35 — despegue sin círculo ni placa: glifo naranja y base de semáforo. */
+.apex-paraglider,.apex-paraglider.good,.apex-paraglider.warn,.apex-paraglider.bad,.apex-paraglider.unknown{
+  width:46px!important;height:46px!important;display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:flex-start!important;position:relative!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;filter:none!important;overflow:visible!important;
+}
+.apex-paraglider::before,.apex-paraglider::after{content:none!important;display:none!important}
+.apex-takeoff-body{display:block;position:relative;z-index:1;height:34px;line-height:34px;
+  transform-origin:50% 85%;animation:apex-takeoff-hover 3s ease-in-out infinite;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.85));}
+.apex-paraglider .apex-original-paraglider,
+.apex-paraglider.good .apex-original-paraglider,
+.apex-paraglider.warn .apex-original-paraglider,
+.apex-paraglider.bad .apex-original-paraglider,
+.apex-paraglider.unknown .apex-original-paraglider{
+  font-size:34px!important;line-height:34px!important;color:#ff872e!important;
+  text-shadow:0 1px 2px #06101c!important;display:block!important;
+}
+.apex-takeoff-base{display:block;position:absolute;z-index:2;left:50%;bottom:1px;
+  width:12px;height:12px;transform:translateX(-50%);border-radius:50%;
+  border:2px solid #fff;box-shadow:0 1px 4px #000b;
+  background:var(--takeoff-status,#96a9bc);
+}
+.apex-paraglider.good{--takeoff-status:#13cb8e}
+.apex-paraglider.warn{--takeoff-status:#ffc247}
+.apex-paraglider.bad{--takeoff-status:#fa5a67}
+.apex-paraglider.unknown{--takeoff-status:#95a8bd}
+@keyframes apex-takeoff-hover{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
+@media(prefers-reduced-motion:reduce){.apex-takeoff-body{animation:none!important}}
+
+
+/* V1.36: mismo parapente/piloto original, sin círculo ni punto inferior.
+   Todo el glifo se anima como una sola unidad y el color ES el semáforo. */
+.apex-paraglider,.apex-paraglider.good,.apex-paraglider.warn,.apex-paraglider.bad,.apex-paraglider.unknown{
+  width:46px!important;height:46px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important;overflow:visible!important;
+}
+.apex-paraglider::before,.apex-paraglider::after,.apex-paraglider .apex-takeoff-base{display:none!important;content:none!important}
+.apex-paraglider .apex-takeoff-body{display:block!important;height:auto!important;line-height:1!important;transform-origin:50% 55%;animation:apex-v136-paraglider-flight 3.4s ease-in-out infinite!important;filter:drop-shadow(0 2px 2px rgba(0,0,0,.85))}
+.apex-paraglider .apex-original-paraglider{font-size:38px!important;line-height:1!important;display:block!important;text-shadow:0 1px 2px #06101c!important}
+.apex-paraglider.good .apex-original-paraglider{color:#18e28c!important}
+.apex-paraglider.warn .apex-original-paraglider{color:#ffac31!important}
+.apex-paraglider.bad .apex-original-paraglider{color:#ff485f!important}
+.apex-paraglider.unknown .apex-original-paraglider{color:#a3b7cc!important}
+@keyframes apex-v136-paraglider-flight{0%,100%{transform:translate3d(0,1px,0) rotate(-4deg)}50%{transform:translate3d(2px,-4px,0) rotate(4deg)}}
+@media(prefers-reduced-motion:reduce){.apex-paraglider .apex-takeoff-body{animation:none!important}}

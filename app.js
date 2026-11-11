@@ -111,7 +111,7 @@ function renderCards(){const sites=visibleSites();$('count').textContent=sites.l
 // Ícono original de FIX16: Flutter Icons.paragliding es el glifo Material Icons 'paragliding'.
 // Usamos el mismo glifo tipográfico, no un dibujo SVG aproximado.
 const landingWindsock=`<svg class="apex-landing-svg" viewBox="0 0 48 56" aria-hidden="true"><path d="M15 9V47" stroke="#e7f4ff" stroke-width="3" stroke-linecap="round"/><path d="M15 12Q26 7 43 16L39 28Q26 19 15 23Z" fill="#ff7922" stroke="#fff" stroke-width="1.5"/><path d="M22 11L28 13L25 24L19 23Z M33 14L39 16L36 27L30 24Z" fill="#fff"/><circle class="apex-landing-base" cx="15" cy="47" r="5.2" fill="var(--landing-color,#13cb8e)" stroke="#f6fcff" stroke-width="1.8"/></svg>`;
-const orangeParaglider='<span class="material-icons apex-original-paraglider" aria-hidden="true">paragliding</span>';
+const orangeParaglider='<span class="apex-takeoff-body"><span class="material-icons apex-original-paraglider" aria-hidden="true">paragliding</span></span>';
 // V1.24: no vincular un popup permanente al marcador. Leaflet alterna
 // automáticamente los popups vinculados al tocar un marcador y, después de
 // cerrar el editor, podía dejar únicamente el tooltip con el nombre.
