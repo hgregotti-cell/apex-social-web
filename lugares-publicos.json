@@ -1,6 +1,6 @@
 {
   "source": "Cloudflare-D1",
-  "exportedAt": "2026-11-11T23:18:08.730043Z",
+  "exportedAt": "2026-11-11T23:27:37.785893Z",
   "count": 13,
   "sites": [
     {
@@ -78,17 +78,20 @@
       "notes": ""
     },
     {
+      "type": "takeoff",
       "id": "arriba_curbita_ok",
       "name": "Arriba de la Curbita",
       "lat": -42.85919,
       "lon": -71.27371,
       "windFromDirections": [
+        0,
         202.5,
         225,
         247.5,
         270,
         292.5,
-        315
+        315,
+        337.5
       ],
       "maxWind": 25,
       "maxGust": 35,
