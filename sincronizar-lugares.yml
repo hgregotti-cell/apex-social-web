@@ -1,0 +1,43 @@
+name: Sincronizar lugares públicos de Apex
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: apex-sync-lugares
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descargar copia pública desde Cloudflare
+        env:
+          API: https://apex-social-api.hgregotti.workers.dev/despegues
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, datetime, pathlib
+          req=urllib.request.Request(os.environ['API'],headers={'Accept':'application/json','User-Agent':'ApexSocialPublicSnapshot/1.0'})
+          with urllib.request.urlopen(req,timeout=30) as resp:
+              data=json.load(resp)
+          if data.get('initialized') is not True or not isinstance(data.get('despegues'),list):
+              raise RuntimeError('Respuesta inválida: se conserva la última copia válida')
+          sites=data['despegues']
+          for site in sites:
+              if not isinstance(site,dict) or not isinstance(site.get('name'),str) or not isinstance(site.get('lat'),(int,float)) or not isinstance(site.get('lon'),(int,float)) or not isinstance(site.get('windFromDirections'),list):
+                  raise RuntimeError('Lugar inválido: se conserva la copia anterior')
+          snapshot={'source':'Cloudflare-D1','exportedAt':datetime.datetime.now(datetime.timezone.utc).isoformat().replace('+00:00','Z'),'count':len(sites),'sites':sites}
+          pathlib.Path('lugares-publicos.json').write_text(json.dumps(snapshot,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('Sincronizados',len(sites),'lugares')
+          PY
+      - name: Publicar si hubo cambios
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lugares-publicos.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Actualizar respaldo público de lugares'
+            git push
+          fi

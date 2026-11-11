@@ -1,0 +1,26 @@
+APEX SOCIAL V1.38 — CARGA ROBUSTA DE LUGARES
+
+CAUSA: Trend Micro bloquea workers.dev en la computadora del trabajo.
+V1.36 usaba despegues.json antiguo al fallar la API; V1.37 quitó el respaldo y por eso no aparecía ningún marcador.
+
+SOLUCIÓN:
+- Primero consulta Cloudflare D1.
+- Si la consulta falla, carga lugares-publicos.json desde GitHub Pages (mismo dominio que la web).
+- La interfaz indica fuente, cantidad de lugares y hora de actualización. Advierte si la copia tiene más de 6 horas.
+- Cuando se usa la copia, bloquea GUARDAR para impedir sobrescribir D1 con una lista desactualizada.
+- GitHub Actions consulta la API cada hora y actualiza el respaldo público. La programación de GitHub Actions puede retrasarse.
+- El respaldo inicial contiene 13 lugares del 11/11/2026. Debe activarse el workflow para mantenerlo al día.
+
+SUBIR A LA RAÍZ DEL REPOSITORIO:
+index.html
+app.js
+lugares-publicos.json
+
+SUBIR EN .github/workflows/:
+sincronizar-lugares.yml
+
+No hace falta subir styles.css porque no cambió. No subir build.py.
+
+IMPORTANTE: el workflow necesita permisos de escritura para GITHUB_TOKEN. En GitHub > Settings > Actions > General > Workflow permissions, habilitar Read and write permissions si está disponible. Después ir a Actions > Sincronizar lugares públicos de Apex > Run workflow y comprobar que terminó bien. El repositorio debe permitir Actions. No se necesita contraseña de administración porque el endpoint GET /despegues es público.
+
+El respaldo es de lectura, NO reemplaza la base D1. La edición seguirá bloqueada en la red laboral si Trend Micro bloquea el Worker. No se intenta evadir el bloqueo corporativo.

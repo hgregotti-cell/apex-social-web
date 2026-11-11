@@ -48,43 +48,48 @@ function statusExplanation(site,h){const a=assess(site,h);return `<div class="ap
 
 function hourFor(site){const hours=state.weather.get(site.id)||[];const target=Date.now()+state.selectedTime*3600000;return hours.find(h=>h.ts>=target-45*60*1000)||hours[0]||null}
 async function loadSites(){
- try{
-  let sites=null;state.siteSource='sin conexión';
-  if(window.APEX_ADMIN_API){
-   // La base compartida es la fuente de verdad. No sustituir silenciosamente
-   // los registros por un archivo local viejo si la API falla.
+ let sites=null, apiError=null, snapshotError=null;
+ const apiConfigured=Boolean(window.APEX_ADMIN_API);
+ if(apiConfigured){
+  try{
    const endpoint=window.APEX_ADMIN_API.replace(/\/$/,'')+'/despegues';
    const r=await fetch(endpoint+'?t='+Date.now(),{cache:'no-store'});
-   if(!r.ok)throw Error('Cloudflare respondió HTTP '+r.status);
-   const data=await r.json();
-   if(!data.initialized||!Array.isArray(data.despegues))throw Error('Cloudflare no devolvió una lista válida de lugares');
-   sites=data.despegues;state.siteSource='Cloudflare-D1';
-  }else{
-   const r=await fetch('despegues.json?nocache='+Date.now(),{cache:'no-store'});
    if(!r.ok)throw Error('HTTP '+r.status);
    const data=await r.json();
-   if(!Array.isArray(data.sites))throw Error('Formato inválido');
-   sites=data.sites;state.siteSource='archivo-local (sin Cloudflare configurado)';
-  }
-  const valid=sites.filter(s=>typeof s.name==='string'&&Number.isFinite(s.lat)&&Number.isFinite(s.lon)&&Array.isArray(s.windFromDirections));
-  if(valid.length!==sites.length)console.warn('Apex: lugares descartados por datos inválidos',sites.length-valid.length);
-  state.sites=valid;
-  render();
-  updateSitesSource();
-  await loadWeather();
- }catch(e){
-  console.error('Apex: error consultando lugares',e);
-  state.siteSource='ERROR DE CONEXIÓN';
-  updateSitesSource(e.message);
-  $('updated').textContent='No se pudo sincronizar con Cloudflare';
-  toast('No se pudo sincronizar la lista de lugares. Revisá la conexión y actualizá.');
+   if(!data.initialized||!Array.isArray(data.despegues))throw Error('Respuesta de D1 inválida');
+   sites=data.despegues;state.siteSource='Cloudflare-D1';state.siteSnapshot=false;state.siteSyncedAt=new Date().toISOString();
+  }catch(e){apiError=e;console.warn('Apex: Cloudflare no accesible, se busca copia pública',e)}
  }
+ if(!sites){
+  try{
+   // El respaldo se publica en el mismo dominio de GitHub Pages que la web.
+   const r=await fetch('lugares-publicos.json?t='+Date.now(),{cache:'no-store'});
+   if(!r.ok)throw Error('HTTP '+r.status);
+   const data=await r.json();
+   if(!Array.isArray(data.sites)||!data.exportedAt||data.source!=='Cloudflare-D1')throw Error('Copia pública inválida');
+   sites=data.sites;state.siteSource='respaldo GitHub Pages';state.siteSnapshot=true;state.siteSyncedAt=data.exportedAt;
+  }catch(e){snapshotError=e;console.warn('Apex: copia pública no disponible',e)}
+ }
+ if(!sites&&!apiConfigured){
+  try{const r=await fetch('despegues.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const data=await r.json();if(!Array.isArray(data.sites))throw Error('Archivo local inválido');sites=data.sites;state.siteSource='archivo local';state.siteSnapshot=true;state.siteSyncedAt=null}catch(e){snapshotError=e}
+ }
+ if(!sites){
+  state.siteSource='ERROR DE CONEXIÓN';updateSitesSource('Cloudflare y respaldo público no disponibles');
+  toast('No se pudo cargar la lista de lugares. Intentá actualizar.');return;
+ }
+ const valid=sites.filter(s=>typeof s.name==='string'&&Number.isFinite(s.lat)&&Number.isFinite(s.lon)&&Array.isArray(s.windFromDirections));
+ if(valid.length!==sites.length)console.warn('Apex: registros inválidos',sites.length-valid.length);
+ state.sites=valid;render();updateSitesSource();await loadWeather();
+ if(apiError&&state.siteSnapshot)console.info('Apex: lectura desde respaldo público; la edición requiere acceso a Cloudflare');
 }
 function updateSitesSource(error=''){
  const el=$('sitesSource');if(!el)return;
- const source=state.siteSource||'desconocida';
- el.textContent=error?'⚠ '+source+' · '+error:source+' · '+state.sites.length+' lugares';
- el.title=error?'No se reemplazaron los datos con un archivo viejo':'Fuente de lugares: '+source;
+ if(error){el.textContent='⚠ '+error;el.title=error;return}
+ const date=state.siteSyncedAt?new Date(state.siteSyncedAt):null;
+ const stamp=date&&!Number.isNaN(date.getTime())?date.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'sin fecha';
+ const stale=date&&(Date.now()-date.getTime())>6*3600000;
+ el.textContent=(state.siteSnapshot?'◷ ':'✓ ')+state.siteSource+' · '+state.sites.length+' lugares · actualizado '+stamp+(stale?' · COPIA ANTIGUA':'');
+ el.title=state.siteSnapshot?'Copia de lectura; los cambios sólo se guardan en Cloudflare. No editar sobre una copia desactualizada.':'Datos leídos directamente de Cloudflare D1';
 }
 
 function weatherFromJson(json){
@@ -222,7 +227,7 @@ function requestAdmin(action,id=null){pendingAdminAction={action,id};$('quickDia
 function openAdmin(){ $('adminPassword').value='';$('adminMessage').textContent=API_URL?'':'Falta configurar la dirección del servidor de administración en config.js.';$('adminDialog').showModal() }
 async function api(path,method='GET',body){if(!API_URL)throw Error('Configurá APEX_ADMIN_API en config.js');const response=await fetch(API_URL+path,{method,headers:{'Content-Type':'application/json','X-Apex-Password':state.token},body:body?JSON.stringify(body):undefined});const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'Error HTTP '+response.status);return data}
 async function adminLogin(){const password=$('adminPassword').value; if(!password){$('adminMessage').textContent='Ingresá la contraseña.';return}state.token=password;$('loginBtn').disabled=true;try{await api('/auth');$('adminDialog').close();$('adminPassword').value='';const pending=pendingAdminAction;pendingAdminAction=null;render();if(pending?.action==='edit')openEdit(pending.id);else if(pending?.action==='delete')deleteSite(pending.id);else openEdit(null)}catch(e){state.token='';$('adminMessage').textContent=e.message}finally{$('loginBtn').disabled=false}}
-async function publishSites(next){if(state.pending)return false;state.pending=true;try{await api('/sites','PUT',{sites:next});state.sites=next;render();updateSitesSource();toast('Guardado en Cloudflare D1. Los cambios ya están disponibles.');return true}catch(e){toast('Error al guardar: '+e.message);return false}finally{state.pending=false}}
+async function publishSites(next){if(state.siteSnapshot){toast('Edición deshabilitada desde copia pública. Conectate a Cloudflare y actualizá antes de guardar.');return false}if(state.pending)return false;state.pending=true;try{await api('/sites','PUT',{sites:next});state.sites=next;render();updateSitesSource();toast('Guardado en Cloudflare D1. Los cambios ya están disponibles.');return true}catch(e){toast('Error al guardar: '+e.message);return false}finally{state.pending=false}}
 function setDraftLocation(lat,lon){$('siteLat').value=Number(lat).toFixed(6);$('siteLon').value=Number(lon).toFixed(6);updateDraftMarker()}
 function updateDraftMarker(){if(!state.map)return;const lat=Number($('siteLat').value),lon=Number($('siteLon').value);if(!$('siteLat').value||!$('siteLon').value||!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;const icon=L.divIcon({className:'',html:'<div class="apex-windsock" title="Arrastrá para ajustar"><span class="windsock-pole"></span><span class="windsock-fabric"></span><span class="windsock-target"></span></div>',iconSize:[44,56],iconAnchor:[22,52]});if(!state.draftMarker){state.draftMarker=L.marker([lat,lon],{icon,draggable:true,zIndexOffset:2000}).addTo(state.map);state.draftMarker.on('dragend',()=>{const c=state.draftMarker.getLatLng();setDraftLocation(c.lat,c.lng)})}else state.draftMarker.setLatLng([lat,lon]);}
 function clearDraft(){if(state.draftMarker){state.map.removeLayer(state.draftMarker);state.draftMarker=null}state.pickLocation=false;document.body.classList.remove('picking-location');$('pickBanner').hidden=true}
