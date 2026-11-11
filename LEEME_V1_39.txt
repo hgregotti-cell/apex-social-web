@@ -1,0 +1,25 @@
+APEX SOCIAL V1.39 — Sincronización por cambios
+
+1. GitHub: subir .github/workflows/sincronizar-lugares.yml a la misma ruta.
+   Se conserva el cron cada hora como respaldo y se añade repository_dispatch.
+2. GitHub: crear un token de acceso de grano fino (fine-grained PAT):
+   propietario hgregotti-cell, solo repositorio apex-social-web;
+   permiso Contents: Read and write. No compartir el token.
+3. Cloudflare: Workers & Pages > apex-social-api > Settings > Variables and Secrets:
+   crear secreto GITHUB_SYNC_TOKEN con el token anterior.
+4. Cloudflare: reemplazar código del Worker por cloudflare-worker.js y hacer Deploy.
+   Antes de reemplazar, comparar con el código publicado por si hay modificaciones
+   posteriores a V1.13; el archivo se basa en el Worker de V1.13.
+5. En GitHub: comprobar Settings > Actions > General > Workflow permissions:
+   Read and write permissions. El workflow debe estar en la rama por defecto.
+6. Probar: agregar o modificar un lugar desde un dispositivo con acceso a D1;
+   ver Actions > Sincronizar lugares públicos de Apex. Tras completarse el workflow
+   y publicarse GitHub Pages, refrescar la computadora del trabajo.
+7. No es sincronización en tiempo real: GitHub Actions/Pages pueden demorar minutos.
+   El cron horario sigue como recuperación si falla el disparador.
+8. No subir GITHUB_SYNC_TOKEN ni ADMIN_PASSWORD a GitHub.
+9. Los 13 lugares iniciales siguen en lugares-publicos.json, pero la fuente
+   de verdad es D1; el workflow los reemplaza con la copia vigente.
+
+IMPORTANTE: Si el Worker publicado fue modificado desde V1.13, no reemplazarlo
+a ciegas. Integrar únicamente el bloque dispatch luego de DB.batch.

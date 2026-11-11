@@ -36,6 +36,26 @@ export default {async fetch(request,env){
   for(const s of body.sites){const {id,name,lat,lon,windFromDirections,maxWind,maxGust,tolerance,notes,...extra}=s;statements.push(env.DB.prepare('INSERT INTO despegues (id,nombre,latitud,longitud,orientaciones,condiciones,observaciones,datos_extra) VALUES (?,?,?,?,?,?,?,?)').bind(id,name,lat,lon,JSON.stringify(windFromDirections),JSON.stringify({maxWind:maxWind??30,maxGust:maxGust??35,tolerance:tolerance??30}),notes||'',JSON.stringify(extra)));}
   statements.push(env.DB.prepare("INSERT INTO apex_metadata(key,value) VALUES('initialized','1') ON CONFLICT(key) DO UPDATE SET value='1'"));
   await env.DB.batch(statements);
-  return json({ok:true,count:body.sites.length});
+  // La escritura en D1 es la operación principal. Un error de GitHub
+  // nunca revierte el guardado ni expone credenciales al navegador.
+  let sync='not_configured';
+  if(env.GITHUB_SYNC_TOKEN){
+   try{
+    const response=await fetch('https://api.github.com/repos/hgregotti-cell/apex-social-web/dispatches',{
+     method:'POST',
+     headers:{
+      'Authorization':'Bearer '+env.GITHUB_SYNC_TOKEN,
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':'2022-11-28',
+      'User-Agent':'ApexSocialD1Sync/1.0',
+      'Content-Type':'application/json'
+     },
+     body:JSON.stringify({event_type:'apex_places_changed'})
+    });
+    sync=response.status===204?'triggered':'dispatch_http_'+response.status;
+    if(!response.ok)console.error('GitHub dispatch failed',response.status);
+   }catch(e){sync='dispatch_failed';console.error('GitHub dispatch error',String(e))}
+  }
+  return json({ok:true,count:body.sites.length,sync});
  }catch(e){return json({error:'No se pudo guardar en D1: '+String(e.message||e)},500)}
  }};
