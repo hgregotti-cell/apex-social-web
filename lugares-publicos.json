@@ -1,7 +1,7 @@
 {
   "source": "Cloudflare-D1",
-  "exportedAt": "2026-11-11T23:14:47.052441Z",
-  "count": 14,
+  "exportedAt": "2026-11-11T23:18:08.730043Z",
+  "count": 13,
   "sites": [
     {
       "type": "landing",
@@ -165,26 +165,6 @@
         0,
         90,
         315
-      ],
-      "maxWind": 30,
-      "maxGust": 35,
-      "tolerance": 30,
-      "notes": ""
-    },
-    {
-      "type": "landing",
-      "id": "site_mwcqkpd4",
-      "name": "Pruebaaa",
-      "lat": -42.738946,
-      "lon": -71.260071,
-      "windFromDirections": [
-        67.5,
-        90,
-        112.5,
-        135,
-        157.5,
-        202.5,
-        225
       ],
       "maxWind": 30,
       "maxGust": 35,
