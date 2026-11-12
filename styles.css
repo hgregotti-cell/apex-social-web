@@ -547,3 +547,25 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 
 /* V1.37: procedencia y cantidad de lugares visible en todos los dispositivos */
 .apex-source-indicator{font-size:11px;color:#8bb9d6;letter-spacing:.02em;padding:3px 10px 7px;opacity:.85;min-height:19px}.apex-source-indicator:not(:empty){overflow-wrap:anywhere}
+
+/* V1.40 — mapa más amplio y controles despejados; los datos siguen intactos. */
+#windInfo{display:none!important}
+#backupBtn{display:none!important}
+#sitesSource{display:none!important}
+#sitesSource.has-error{display:block!important;color:#ff8996;padding:4px 8px 7px}
+@media(min-width:701px){
+ body.map-mode main{padding-top:12px;padding-bottom:8px}
+ body.map-mode header{margin-bottom:9px}
+ body.map-mode .toolbar{margin-bottom:7px}
+ body.map-mode .apex-timebar{margin-bottom:6px}
+ body.map-mode .map-wrap{border-radius:16px}
+}
+@media(max-width:700px){
+ body.map-mode .sidebar{padding-bottom:3px}
+ body.map-mode main{padding-top:5px}
+ body.map-mode .apex-timebar{margin-bottom:5px}
+ body.map-mode .map-wrap{min-height:0!important}
+}
+/* Los popups de Leaflet se desplazan dentro del mapa y no quedan cortados arriba. */
+.apex-marker-menu{max-width:min(290px,calc(100vw - 68px))}
+.leaflet-popup-content-wrapper{max-height:75dvh}

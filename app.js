@@ -84,7 +84,8 @@ async function loadSites(){
 }
 function updateSitesSource(error=''){
  const el=$('sitesSource');if(!el)return;
- if(error){el.textContent='⚠ '+error;el.title=error;return}
+ if(error){el.textContent='⚠ '+error;el.title=error;el.classList.add('has-error');return}
+ el.classList.remove('has-error');
  const date=state.siteSyncedAt?new Date(state.siteSyncedAt):null;
  const stamp=date&&!Number.isNaN(date.getTime())?date.toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'sin fecha';
  const stale=date&&(Date.now()-date.getTime())>6*3600000;
@@ -170,7 +171,7 @@ function renderMarkers(){
     const status=assess(current,hourFor(current));
     const popup=`<div class="apex-marker-menu"><strong>${safe(current.name)}</strong><small class="apex-kind">${siteTypeLabel(current)}</small>${statusExplanation(current,hourFor(current))}<div class="apex-marker-actions"><button type="button" data-action="detail" data-id="${safe(current.id)}">Pronóstico</button><button type="button" data-action="edit" data-id="${safe(current.id)}">✎ Editar</button><button type="button" data-action="delete" data-id="${safe(current.id)}">Eliminar</button></div></div>`;
     // No bindPopup: evita el cierre automático al volver a tocar el mismo símbolo.
-    L.popup({autoPan:false,closeButton:true,maxWidth:290,minWidth:230,autoClose:true,closeOnClick:true})
+    L.popup({autoPan:true,autoPanPaddingTopLeft:L.point(18,90),autoPanPaddingBottomRight:L.point(18,Math.min(145,Math.round(state.map.getSize().y*.25))),keepInView:true,closeButton:true,maxWidth:290,minWidth:Math.min(230,Math.max(170,state.map.getSize().x-56)),maxHeight:Math.max(150,Math.floor(state.map.getSize().y*.60)),autoClose:true,closeOnClick:true})
      .setLatLng(marker.getLatLng()).setContent(popup).openOn(state.map);
    }
   });
