@@ -588,3 +588,6 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 .apex-marker-actions button{min-width:0;padding:7px 4px;font-size:12px;min-height:36px;white-space:nowrap}
 #detailDialog .forecast-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 @media(max-width:700px){#detailDialog .forecast-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* V1.44 */
+.apex-matrix .hour-pick{background:transparent;color:inherit;border:0;font:inherit;font-weight:800;cursor:pointer;width:100%;padding:3px 6px}.apex-matrix [data-hour]{cursor:pointer}.apex-matrix .selected-hour{background:#263c50!important;box-shadow:inset 2px 0 #ff852e,inset -2px 0 #ff852e}.apex-matrix th.selected-hour{background:#ff792d!important;color:#07182f!important}.apex-matrix .hour-pick:focus-visible{outline:2px solid white}.map-compass-caption small{line-height:1.25}
