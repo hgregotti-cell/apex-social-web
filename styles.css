@@ -576,3 +576,15 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 @media(max-width:700px){.map-compass-caption strong{font-size:11px}}
 /* V1.42 */
 .meteo-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 6px;font-size:11px;color:#9bbbd3}.meteo-tools .ghost{padding:5px 10px;font-size:12px}.apex-timebar #windAltitude{min-width:100px;max-width:125px;background:#102b49;color:#e4efff;border:1px solid #315777;border-radius:8px;padding:6px}.forecast-advanced{display:none}#detailDialog[data-forecast-tab="advanced"] .forecast-advanced{display:block}#detailDialog[data-forecast-tab="advanced"] .forecast-hourly,#detailDialog[data-forecast-tab="advanced"] .forecast-summary,#detailDialog[data-forecast-tab="advanced"] .forecast-evolution{display:none!important}.advanced-card{background:#102b49;border:1px solid #315777;border-radius:10px;padding:12px;margin:10px 0}.advanced-card p{margin:6px 0}.profile-hour{font-size:16px;max-width:100%}.forecast-tabs{flex-wrap:wrap}@media(max-width:700px){.apex-timebar{flex-wrap:wrap}.meteo-tools{font-size:10px}}
+/* V1.43: tarjeta compacta sin desplazamiento interno. */
+.leaflet-popup-content-wrapper{max-height:none}
+.leaflet-popup-content{margin:10px 12px!important}
+.apex-marker-menu{gap:4px;max-width:min(310px,calc(100vw - 64px))}
+.apex-marker-menu .apex-kind{margin:0}
+.apex-popup-status{display:grid;gap:3px;padding:6px 8px;border:1px solid #31516f;border-left:3px solid #43e68a;border-radius:7px;background:#102b49}
+.apex-popup-status.bad{border-left-color:#ff7378}.apex-popup-status.warn{border-left-color:#f8c94d}.apex-popup-status.unknown{border-left-color:#8195a8}
+.apex-popup-status strong{font-size:11px}.apex-popup-status span{font-size:11px}
+.apex-marker-actions{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:4px}
+.apex-marker-actions button{min-width:0;padding:7px 4px;font-size:12px;min-height:36px;white-space:nowrap}
+#detailDialog .forecast-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+@media(max-width:700px){#detailDialog .forecast-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
