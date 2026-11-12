@@ -154,16 +154,18 @@ const orangeParaglider='<span class="apex-takeoff-body"><span class="material-ic
 // Abrimos un popup nuevo explícitamente en CADA toque, sin alternancia.
 function renderMarkers(){
  if(!state.map)return;
- state.markers.forEach(m=>state.map.removeLayer(m));state.markers=[];
+ state.hoverSiteId=null;state.markers.forEach(m=>state.map.removeLayer(m));state.markers=[];
  visibleSites(true).forEach(s=>{
   const a=assess(s,hourFor(s));
   const icon=L.divIcon({className:'',html:isLanding(s)?`<div class="apex-landing-marker ${a.kind}" title="${safe(a.label)}"><span class="apex-landing-rotor" style="--wind-to:${Number.isFinite(hourFor(s)?.dir)?(hourFor(s).dir+90)%360:0}deg">${landingWindsock}</span></div>`:`<div class="apex-paraglider ${a.kind}" title="${safe(a.label)}">${orangeParaglider}</div>`,iconSize:isLanding(s)?[48,56]:[46,46],iconAnchor:isLanding(s)?[24,48]:[23,23]});
   const marker=L.marker([s.lat,s.lon],{icon}).addTo(state.map);
   // En modo edición el tooltip táctil puede interceptar el segundo toque.
   marker.bindTooltip(s.name,{direction:'top'});
+  marker.on('mouseover',()=>{if(!state.pickLocation&&window.matchMedia('(hover: hover)').matches){state.hoverSiteId=s.id;updateMapCompass();}});
+  marker.on('mouseout',()=>{if(state.hoverSiteId===s.id){state.hoverSiteId=null;updateMapCompass();}});
   marker.on('click',e=>{
    if(state.pickLocation)return;
-   state.focusSiteId=s.id;updateMapCompass();
+   state.hoverSiteId=null;state.focusSiteId=s.id;updateMapCompass();
    marker.closeTooltip();
    {
     const current=state.sites.find(x=>x.id===s.id);
@@ -221,7 +223,7 @@ function applyForecastTab(){const dialog=$('detailDialog');dialog.dataset.foreca
 
 function showDetail(id,day){if($('quickDialog')?.open)$('quickDialog').close();const s=state.sites.find(x=>x.id===id);if(!s)return;const all=state.weather.get(id)||[],h=hourFor(s),a=assess(s,h);const days=[...new Set(all.map(x=>x.local.slice(0,10)))].slice(0,5);const chosen=days.includes(day)?day:days[0];const hs=all.filter(x=>x.local.startsWith(chosen||'')).slice(0,24);const current=hs.find(x=>x.ts>=Date.now()-3600000)||hs[0]||h;
  $('detailContent').innerHTML=`<div class="eyebrow">APEX SOCIAL · METEOROLOGÍA DE VUELO</div><h2>${safe(s.name)}</h2><div class="detail-meta"><span>⌖ ${fmt(s.lat,5)}, ${fmt(s.lon,5)}</span><span>${siteTypeLabel(s)}: ${s.windFromDirections.map(windLabel).join(' · ')||'Sin configurar'}</span><span>Horizonte: 5 días</span></div><div class="day-selector">${days.map((d,i)=>`<button class="day-button ${d===chosen?'selected':''}" data-day="${safe(d)}" data-site="${safe(id)}">${i===0?'HOY · ':''}${safe(d.slice(8,10)+'/'+d.slice(5,7))}</button>`).join('')}</div>${statusExplanation(s,current)}<div class="forecast-tabs" role="tablist" aria-label="Secciones del pronóstico"><button type="button" role="tab" data-forecast-tab="hourly" class="forecast-tab">Pronóstico horario</button><button type="button" role="tab" data-forecast-tab="evolution" class="forecast-tab">Evolución del viento</button><button type="button" role="tab" data-forecast-tab="summary" class="forecast-tab">Condiciones actuales</button></div><div class="forecast-tab-panel forecast-summary"><div class="forecast-overview"><div class="forecast-intro"><div class="status ${a.kind}">${safe(a.label)}</div><p>${safe(a.reason)}</p><div class="overview-metrics"><div><small>VIENTO</small><strong>${fmt(current?.wind)} <small>km/h</small></strong></div><div><small>RÁFAGA</small><strong>${fmt(current?.gust)} <small>km/h</small></strong></div><div><small>TEMPERATURA</small><strong>${fmt(current?.temp,1)} °C</strong></div><div><small>NUBE BAJA</small><strong>${fmt(current?.cloudLow)} %</strong></div></div><p class="source-note">Motor FIX16: máximos entre IFS-HRES 9 km, ICON, GFS y GDPS/GEM para viento, ráfagas, lluvia, CAPE y viento a 850 hPa; rangos mínimos y máximos y concordancia orientativa. No es una medición ni autorización de vuelo.</p></div></div></div><div class="forecast-tab-panel forecast-hourly"><div class="matrix-header"><strong>PRONÓSTICO HORARIO · 24 HORAS</strong><span>Deslizá horizontalmente para ver todas las horas</span></div>${hs.length?forecastMatrix(s,hs):'<div class="empty">Sin datos meteorológicos para este día.</div>'}</div><div class="forecast-tab-panel forecast-evolution">${hs.length?forecastInsights(s,hs):'<div class="empty">Sin datos meteorológicos para este día.</div>'}</div><p class="source-note">La brújula de viento y orientaciones está sobre el mapa. Las condiciones reales deben verificarse en el despegue.</p>`;
- state.forecastDay=chosen;applyForecastTab();if(state.forecastTab==='evolution'&&chosen)loadModelComparison(id,chosen); if(!$('detailDialog').open)$('detailDialog').showModal();const matrix=$('detailDialog').querySelector('.matrix-scroll');if(matrix)matrix.scrollLeft=0;state.focusSiteId=s.id;updateMapCompass();}
+ state.forecastDay=chosen;applyForecastTab();if(state.forecastTab==='evolution'&&chosen)loadModelComparison(id,chosen); if(!$('detailDialog').open)$('detailDialog').showModal();const matrix=$('detailDialog').querySelector('.matrix-scroll');if(matrix)matrix.scrollLeft=0;state.hoverSiteId=null;state.focusSiteId=s.id;updateMapCompass();}
 const API_URL=(window.APEX_ADMIN_API||'').replace(/\/$/,'');
 let pendingAdminAction=null;
 function requestAdmin(action,id=null){pendingAdminAction={action,id};$('quickDialog')?.open&&$('quickDialog').close();state.map?.closePopup();openAdmin()}
@@ -259,17 +261,19 @@ function finishPick(){state.pickLocation=false;document.body.classList.remove('p
 // FIX16: brújula GEOGRÁFICA en el mapa; independiente del pronóstico modal.
 // Leaflet no rota el mapa en esta versión web, por lo que el norte siempre queda arriba.
 state.focusSiteId=null;
+state.hoverSiteId=null;
 state.centerWind=null;
 state.centerWindTimer=null;
 function centerForecastSite(){
+  const hover=state.sites.find(s=>s.id===state.hoverSiteId);
+  if(hover)return hover;
   const focus=state.sites.find(s=>s.id===state.focusSiteId);
   if(focus)return focus;
   if(!state.map)return null;
   const c=state.map.getCenter();
   return [...state.sites].sort((a,b)=>(a.lat-c.lat)**2+(a.lon-c.lng)**2-( (b.lat-c.lat)**2+(b.lon-c.lng)**2 ))[0]||null;
 }
-function mapCompassSvg(site,h){
- const dir=Number.isFinite(state.centerWind?.dir)?state.centerWind.dir:h?.dir;
+function mapCompassSvg(site,h,dir){
  const valid=site?.windFromDirections||[];
  const arc=(deg,r,width,color,opacity)=>{const a=(deg-width/2)*Math.PI/180,b=(deg+width/2)*Math.PI/180;const p=x=>`${(70+r*Math.sin(x)).toFixed(2)} ${(70-r*Math.cos(x)).toFixed(2)}`;return `<path d="M ${p(a)} A ${r} ${r} 0 0 1 ${p(b)}" fill="none" stroke="${color}" stroke-width="${opacity===.9?5:10}" stroke-linecap="round" opacity="${opacity}"/>`};
  const bands=valid.map(d=>arc(d,58,60,'#36e398',.23)+arc(d,58,30,'#36e398',.9)).join('');
@@ -278,9 +282,9 @@ function mapCompassSvg(site,h){
 }
 function updateMapCompass(){
  const box=$('mapCompass');if(!box)return;
- const site=centerForecastSite(),h=site?hourFor(site):null,w=state.centerWind;
- const dir=Number.isFinite(w?.dir)?w.dir:h?.dir;
- box.innerHTML=`${mapCompassSvg(site,h)}<div class="map-compass-caption"><strong>VIENTO MAPA · NORTE FIJO</strong><span>${Number.isFinite(dir)?`${windLabel(dir)} ${Math.round(dir)}° → ${windLabel((dir+180)%360)}`:'Dirección —'}</span><span>${Number.isFinite(w?.wind)?Math.round(w.wind):fmt(h?.wind)} km/h · ráf. ${Number.isFinite(w?.gust)?Math.round(w.gust):fmt(h?.gust)} km/h</span><small>${site?safe(site.name)+' · '+site.windFromDirections.map(windLabel).join(' · '):'Seleccioná un despegue'}</small></div>`;
+ const site=centerForecastSite(),h=site?hourFor(site):null,w=site?h:state.centerWind;
+ const dir=w?.dir;
+ box.innerHTML=`${mapCompassSvg(site,h,dir)}<div class="map-compass-caption"><strong>${site?safe(site.name):'VIENTO MAPA'}</strong><span>${Number.isFinite(dir)?`${windLabel(dir)} ${Math.round(dir)}° → ${windLabel((dir+180)%360)}`:'Dirección —'}</span><span>${Number.isFinite(w?.wind)?Math.round(w.wind):fmt(h?.wind)} km/h · ráf. ${Number.isFinite(w?.gust)?Math.round(w.gust):fmt(h?.gust)} km/h</span><small>${site?site.windFromDirections.map(windLabel).join(' · '):'Seleccioná un despegue'}</small></div>`;
 }
 function scheduleCenterWind(){
  clearTimeout(state.centerWindTimer);

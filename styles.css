@@ -569,3 +569,8 @@ body:not(.map-mode) .apex-timebar,body:not(.map-mode) .wind-info{display:none}
 /* Los popups de Leaflet se desplazan dentro del mapa y no quedan cortados arriba. */
 .apex-marker-menu{max-width:min(290px,calc(100vw - 68px))}
 .leaflet-popup-content-wrapper{max-height:75dvh}
+
+/* V1.41: brújula contextual y mapa despejado */
+.map-head{justify-content:flex-end}
+.map-compass-caption strong{color:#ff8b39;font-size:13px;line-height:1.2;letter-spacing:.2px;overflow-wrap:anywhere}
+@media(max-width:700px){.map-compass-caption strong{font-size:11px}}
